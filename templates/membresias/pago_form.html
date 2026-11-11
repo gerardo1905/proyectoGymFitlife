@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} — FitLife{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem;">
+        <h2 class="ios-title">{{ titulo }}</h2>
+        <p class="ios-subtitle">Comprobante de cobro para el cliente.</p>
+    </div>
+
+    <!-- Resumen de la Membresia -->
+    <div class="ios-card" style="margin-bottom: 1.25rem; padding: 0.5rem 1.5rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; padding: 0.85rem 0 0.5rem 0; border-bottom: 1px solid var(--ios-separator);">
+            Resumen de Contratación
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--ios-separator);">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">Socio Titular</span>
+            <strong style="font-size: 0.95rem; color: var(--ios-text);">{{ membresia.socio.nombres }} {{ membresia.socio.apellidos }}</strong>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--ios-separator);">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">Plan Contratado</span>
+            <span style="font-size: 0.95rem; color: var(--ios-subtext);">{{ membresia.plan.nombre }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0;">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">Monto Acordado</span>
+            <strong style="font-size: 1.1rem; color: var(--ios-blue);">${{ membresia.importe_acordado }}</strong>
+        </div>
+    </div>
+
+    <form method="post" id="pagoForm" class="ios-form">
+        {% csrf_token %}
+        <div class="ios-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; margin-bottom: 1rem;">
+                Detalle del Pago
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.monto.id_for_label }}">{{ form.monto.label }}</label>
+                    {{ form.monto }}
+                    {% if form.monto.errors %}<span class="field-error">{{ form.monto.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.metodo_pago.id_for_label }}">{{ form.metodo_pago.label }}</label>
+                    {{ form.metodo_pago }}
+                    {% if form.metodo_pago.errors %}<span class="field-error">{{ form.metodo_pago.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.comprobante_ref.id_for_label }}">{{ form.comprobante_ref.label }}</label>
+                {{ form.comprobante_ref }}
+                {% if form.comprobante_ref.errors %}<span class="field-error">{{ form.comprobante_ref.errors.0 }}</span>{% endif %}
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="{% url 'membresia_lista' %}" class="btn-ios-secondary">Cancelar</a>
+            <button type="button" id="openPagoModalBtn" class="btn-ios-primary" style="padding-left: 2rem; padding-right: 2rem;">
+                Confirmar y Guardar Pago
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal Flotante de Confirmacion de Pago -->
+<div class="ios-modal-backdrop" id="pagoModal">
+    <div class="ios-modal-card">
+        <div class="ios-modal-icon">💳</div>
+        <h3 class="ios-modal-title">Confirmar Cobro</h3>
+        <p class="ios-modal-body">¿Confirma la recepción del pago a nombre de <strong>{{ membresia.socio.nombres }} {{ membresia.socio.apellidos }}</strong>?</p>
+        <div class="ios-modal-actions">
+            <button type="button" class="btn-ios-secondary" id="closePagoModalBtn">Revisar</button>
+            <button type="button" class="btn-ios-primary" id="submitPagoBtn">Procesar Pago</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('pagoModal');
+        const openBtn = document.getElementById('openPagoModalBtn');
+        const closeBtn = document.getElementById('closePagoModalBtn');
+        const submitBtn = document.getElementById('submitPagoBtn');
+        const form = document.getElementById('pagoForm');
+
+        openBtn.addEventListener('click', () => modal.classList.add('active'));
+        closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+        submitBtn.addEventListener('click', () => form.submit());
+    });
+</script>
+{% endblock %}

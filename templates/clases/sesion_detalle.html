@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Clase — {{ sesion.tipo_clase.nombre }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+        <div>
+            <h2 class="ios-title">{{ sesion.tipo_clase.nombre }}</h2>
+            <p class="ios-subtitle">{{ sesion.fecha|date:"d/m/Y" }} — De {{ sesion.hora_inicio|time:"H:i" }} a {{ sesion.hora_fin|time:"H:i" }} hrs | {{ sesion.sala.nombre }}</p>
+        </div>
+        <a href="{% url 'sesion_lista' %}" class="btn-ios-secondary">← Volver al Calendario</a>
+    </div>
+
+    <!-- Indicador de Ocupacion de Cupos -->
+    <div class="ios-card" style="margin-bottom: 1.5rem; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <span style="font-size: 0.85rem; color: var(--ios-subtext); display: block; font-weight: 600;">Estado de Ocupación</span>
+            <strong style="font-size: 1.2rem; color: var(--ios-text);">{{ inscritos.count }} inscritos de {{ sesion.cupo_maximo }} cupos</strong>
+        </div>
+        <div>
+            {% if cupos_disponibles > 0 %}
+                <span class="ios-badge green" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">🟢 {{ cupos_disponibles }} Cupos Disponibles</span>
+            {% else %}
+                <span class="ios-badge red" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">🔴 Clase Completa</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Formulario de Inscripcion -->
+    {% if cupos_disponibles > 0 %}
+    <div class="ios-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+        <h3 style="font-size: 1rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Inscribir Socio a esta Sesión</h3>
+        <form method="post" style="display: flex; gap: 0.75rem; align-items: flex-end;">
+            {% csrf_token %}
+            <div style="flex: 1;">
+                <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.35rem;">Socio con Membresía Activa</label>
+                {{ form_inscripcion.socio }}
+            </div>
+            <button type="submit" class="btn-ios-primary">Confirmar Cupo</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Lista de Socios Inscritos -->
+    <div class="ios-card" style="padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Lista de Asistencia 📝</h3>
+        
+        <div class="ios-table-container">
+            <table class="ios-table">
+                <thead>
+                    <tr>
+                        <th>Socio</th>
+                        <th>RUT</th>
+                        <th>Fecha Inscripción</th>
+                        <th>Asistencia</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inscritos %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'socio_detalle' item.socio.pk %}" style="color: var(--ios-text); font-weight: 600; text-decoration: none;">
+                                {{ item.socio.nombres }} {{ item.socio.apellidos }}
+                            </a>
+                        </td>
+                        <td style="color: var(--ios-subtext);">{{ item.socio.rut }}</td>
+                        <td style="color: var(--ios-subtext); font-size: 0.85rem;">{{ item.fecha_inscripcion|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            {% if item.asistio %}
+                                <span class="ios-badge green">Asistió</span>
+                            {% else %}
+                                <span class="ios-badge amber">Pendiente</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            <a href="{% url 'asistencia_marcar' item.pk %}" class="btn-ios-link" style="color: var(--ios-blue);">
+                                {% if item.asistio %}Marcar Ausente{% else %}Marcar Presente{% endif %}
+                            </a>
+                            <a href="{% url 'inscripcion_cancelar' item.pk %}" class="btn-ios-link" style="color: var(--ios-red);">Liberar Cupo</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--ios-muted); padding: 2rem;">
+                            Aún no hay socios inscritos en esta clase.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

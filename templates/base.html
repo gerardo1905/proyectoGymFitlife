@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FitLife — Plataforma de Gestión{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <!-- Header Translucido iOS -->
+    <header class="header-navbar">
+        <div class="header-container">
+            <!-- Brand / Logo -->
+            <a href="{% url 'home' %}" class="brand-logo">
+                <span>FitLife 🏋️‍♂️</span>
+                <span class="brand-badge">Staff</span>
+            </a>
+
+            <!-- Botón Menú Móvil -->
+            <button class="nav-toggle-btn" id="navToggleBtn" aria-label="Abrir menú">☰</button>
+
+            <!-- Links de Navegación Agrupados -->
+            <nav class="nav-links" id="navLinksMenu">
+                {% if user.is_authenticated %}
+                    {% if user.rol == 'ENTRENADOR' %}
+                        <!-- Menú Exclusivo para Entrenador -->
+                        <a href="{% url 'sesion_lista' %}" class="nav-link nav-highlight">📅 Mis Clases & Agenda</a>
+                        <a href="{% url 'tipo_clase_lista' %}" class="nav-link">🧘‍♀️ Actividades y Salas</a>
+                    {% else %}
+                        <!-- Menú para Administrador y Recepcionista -->
+                        <a href="{% url 'home' %}" class="nav-link">Inicio</a>
+                        <a href="{% url 'acceso_control' %}" class="nav-link nav-highlight">⚡ Acceso / Aforo</a>
+                        <a href="{% url 'socio_lista' %}" class="nav-link">Socios</a>
+                        <a href="{% url 'membresia_lista' %}" class="nav-link">Membresías</a>
+                        <a href="{% url 'sesion_lista' %}" class="nav-link">Clases</a>
+                        <a href="{% url 'plan_lista' %}" class="nav-link">Planes</a>
+
+                        {% if user.rol == 'ADMINISTRADOR' or user.is_superuser %}
+                            <a href="{% url 'usuario_lista' %}" class="nav-link">Trabajadores</a>
+                        {% endif %}
+                    {% endif %}
+
+                    <!-- Menú de Usuario / Perfil -->
+                    <div class="user-menu">
+                        <a href="{% url 'perfil' %}" class="user-pill" title="Editar Mi Perfil">
+                            👤 {{ user.username }} <span class="user-role">({{ user.get_rol_display }})</span>
+                        </a>
+                        <a href="{% url 'logout' %}" class="nav-link-logout">Salir</a>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-link">Iniciar Sesión</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Alertas del Sistema -->
+    {% if messages %}
+        <div class="messages-wrapper">
+            {% for message in messages %}
+                <div class="alert-toast {{ message.tags }}">
+                    <span>{{ message }}</span>
+                    <button class="toast-close-btn">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Contenido Principal -->
+    <main class="main-wrapper">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-bar">
+        <p>&copy; 2026 Centro Deportivo FitLife — Plataforma de Control Interno</p>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

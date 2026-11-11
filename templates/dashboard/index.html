@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel Principal — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">Panel de Control 🏋️‍♂️</h2>
+        <p class="ios-subtitle">Resumen operativo y métricas en tiempo real — {{ hoy|date:"d \d\e F, Y" }}</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{% url 'acceso_control' %}" class="btn-ios-primary">⚡ Torniquete / Acceso</a>
+    </div>
+</div>
+
+<!-- Tarjetas KPI Estilo iOS -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    
+    <div class="ios-card" style="padding: 1.25rem; margin-bottom: 0;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--ios-muted); text-transform: uppercase; letter-spacing: 0.05em;">Aforo Actual</span>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 0.4rem;">
+            <span style="font-size: 2rem; font-weight: 800; color: var(--ios-blue);">{{ aforo_actual }}</span>
+            <span class="ios-badge blue">En gimnasio</span>
+        </div>
+    </div>
+
+    <div class="ios-card" style="padding: 1.25rem; margin-bottom: 0;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--ios-muted); text-transform: uppercase; letter-spacing: 0.05em;">Socios Activos</span>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 0.4rem;">
+            <span style="font-size: 2rem; font-weight: 800; color: var(--ios-text);">{{ total_socios_activos }}</span>
+            <span class="ios-badge green">Registrados</span>
+        </div>
+    </div>
+
+    <div class="ios-card" style="padding: 1.25rem; margin-bottom: 0;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--ios-muted); text-transform: uppercase; letter-spacing: 0.05em;">Membresías Vigentes</span>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 0.4rem;">
+            <span style="font-size: 2rem; font-weight: 800; color: var(--ios-text);">{{ membresias_activas }}</span>
+            <span class="ios-badge green">Al día</span>
+        </div>
+    </div>
+
+    <div class="ios-card" style="padding: 1.25rem; margin-bottom: 0;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--ios-muted); text-transform: uppercase; letter-spacing: 0.05em;">Ingresos de Hoy</span>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 0.4rem;">
+            <span style="font-size: 1.6rem; font-weight: 800; color: #166534;">${{ ingresos_hoy|floatformat:0 }}</span>
+            <span class="ios-badge green">Caja</span>
+        </div>
+    </div>
+
+</div>
+
+<!-- Tablas de Actividad Reciente y Clases del Día -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
+
+    <!-- Clases Programadas para Hoy -->
+    <div class="ios-card" style="padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--ios-text);">Clases del Día 📅</h3>
+            <a href="{% url 'sesion_lista' %}" class="btn-ios-link">Ver todas →</a>
+        </div>
+        <div class="ios-table-container">
+            <table class="ios-table">
+                <thead>
+                    <tr>
+                        <th>Actividad</th>
+                        <th>Horario</th>
+                        <th>Sala</th>
+                        <th>Cupos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in clases_hoy %}
+                    <tr>
+                        <td><strong>{{ c.tipo_clase.nombre }}</strong></td>
+                        <td style="color: var(--ios-subtext);">{{ c.hora_inicio|time:"H:i" }} hrs</td>
+                        <td style="color: var(--ios-subtext);">{{ c.sala.nombre }}</td>
+                        <td><span class="ios-badge blue">{{ c.inscritos.count }}/{{ c.cupo_maximo }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--ios-muted); padding: 1.5rem;">
+                            No hay clases agendadas para hoy.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Últimos Accesos Registrados -->
+    <div class="ios-card" style="padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--ios-text);">Accesos Recientes ⚡</h3>
+            <a href="{% url 'acceso_control' %}" class="btn-ios-link">Ir a Torniquete →</a>
+        </div>
+        <div class="ios-table-container">
+            <table class="ios-table">
+                <thead>
+                    <tr>
+                        <th>Socio</th>
+                        <th>Hora</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in ultimos_accesos %}
+                    <tr>
+                        <td><strong>{{ a.socio.nombres }} {{ a.socio.apellidos }}</strong></td>
+                        <td style="color: var(--ios-subtext);">{{ a.fecha_hora_ingreso|date:"H:i:s" }}</td>
+                        <td>
+                            {% if a.permitido %}
+                                <span class="ios-badge green">Permitido</span>
+                            {% else %}
+                                <span class="ios-badge red">Rechazado</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--ios-muted); padding: 1.5rem;">
+                            Sin registro de accesos hoy.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

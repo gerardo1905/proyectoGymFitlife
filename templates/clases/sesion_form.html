@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} — FitLife{% endblock %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <h2 class="ios-title">{{ titulo }}</h2>
+            <p class="ios-subtitle">Seleccione la actividad, sala, horario y límite de participantes.</p>
+        </div>
+        <a href="{% url 'sesion_lista' %}" class="btn-ios-secondary">← Volver</a>
+    </div>
+
+    <!-- Muestra todos los errores detectados por Django -->
+    {% if form.errors %}
+        <div style="background: var(--ios-red-bg); border: 1px solid #fecaca; color: #b91c1c; padding: 1rem; border-radius: var(--radius-ios-md); margin-bottom: 1.5rem;">
+            <strong style="display: block; margin-bottom: 0.5rem;">⚠️ Corrige los siguientes errores antes de guardar:</strong>
+            <ul style="margin-left: 1.25rem; font-size: 0.9rem;">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" class="ios-form">
+        {% csrf_token %}
+        <div class="ios-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+
+            <div class="form-group">
+                <label for="{{ form.tipo_clase.id_for_label }}">{{ form.tipo_clase.label }}</label>
+                {{ form.tipo_clase }}
+            </div>
+
+            {% if user.rol != 'ENTRENADOR' %}
+            <div class="form-group">
+                <label for="{{ form.entrenador.id_for_label }}">{{ form.entrenador.label }}</label>
+                {{ form.entrenador }}
+            </div>
+            {% endif %}
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.sala.id_for_label }}">{{ form.sala.label }}</label>
+                    {{ form.sala }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.cupo_maximo.id_for_label }}">{{ form.cupo_maximo.label }}</label>
+                    {{ form.cupo_maximo }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.fecha.id_for_label }}">{{ form.fecha.label }}</label>
+                {{ form.fecha }}
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.hora_inicio.id_for_label }}">{{ form.hora_inicio.label }}</label>
+                    {{ form.hora_inicio }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.hora_fin.id_for_label }}">{{ form.hora_fin.label }}</label>
+                    {{ form.hora_fin }}
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="{% url 'sesion_lista' %}" class="btn-ios-secondary">Cancelar</a>
+            <button type="submit" class="btn-ios-primary" style="padding-left: 2rem; padding-right: 2rem;">
+                Guardar Sesión
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

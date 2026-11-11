@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Socios — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">Socios del Gimnasio 💳</h2>
+        <p class="ios-subtitle">Directorio de clientes registrados y consulta de vigencia.</p>
+    </div>
+    <a href="{% url 'socio_crear' %}" class="btn-ios-primary">+ Registrar Socio</a>
+</div>
+
+<!-- Barra de búsqueda estilo iOS -->
+<div class="ios-card" style="padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+    <form method="get" action="{% url 'socio_lista' %}" style="display: flex; gap: 0.75rem; align-items: center;">
+        <div style="flex: 1; position: relative;">
+            <input type="text" name="q" value="{{ query }}" class="ios-input" placeholder="🔍 Buscar socio por RUT, nombres, apellidos o correo..." autofocus>
+        </div>
+        {% if query %}
+            <a href="{% url 'socio_lista' %}" class="btn-ios-secondary">Limpiar</a>
+        {% endif %}
+        <button type="submit" class="btn-ios-primary">Buscar</button>
+    </form>
+</div>
+
+<!-- Tabla de Socios estilo iOS List -->
+<div class="ios-table-container">
+    <div style="overflow-x: auto;">
+        <table class="ios-table">
+            <thead>
+                <tr>
+                    <th>RUT</th>
+                    <th>Nombre Completo</th>
+                    <th>Contacto</th>
+                    <th>Fecha Registro</th>
+                    <th>Estado</th>
+                    <th style="text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for socio in socios %}
+                <tr>
+                    <td><strong>{{ socio.rut }}</strong></td>
+                    <td>
+                        <a href="{% url 'socio_detalle' socio.pk %}" style="color: var(--ios-text); font-weight: 600; text-decoration: none;">
+                            {{ socio.nombres }} {{ socio.apellidos }}
+                        </a>
+                    </td>
+                    <td style="color: var(--ios-subtext); font-size: 0.875rem;">
+                        {{ socio.telefono }}
+                        {% if socio.email %}<br><span style="font-size: 0.8rem; color: var(--ios-muted);">{{ socio.email }}</span>{% endif %}
+                    </td>
+                    <td style="color: var(--ios-subtext);">{{ socio.fecha_registro|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if socio.activo %}
+                            <span class="ios-badge green">Activo</span>
+                        {% else %}
+                            <span class="ios-badge red">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'socio_detalle' socio.pk %}" class="btn-ios-link">Ficha</a>
+                        <a href="{% url 'socio_editar' socio.pk %}" class="btn-ios-link" style="color: var(--ios-subtext);">Editar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--ios-muted); padding: 2.5rem;">
+                        {% if query %}
+                            No se encontraron socios que coincidan con la búsqueda "{{ query }}".
+                        {% else %}
+                            No hay socios registrados en el sistema. Presione "+ Registrar Socio" para agregar el primero.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

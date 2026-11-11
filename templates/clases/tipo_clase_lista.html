@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Actividades y Salas — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">Actividades y Salas 🧘‍♀️</h2>
+        <p class="ios-subtitle">Catálogo de clases grupales y espacios físicos del gimnasio.</p>
+    </div>
+    {% if user.rol == 'ADMINISTRADOR' or user.is_superuser %}
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="{% url 'sala_crear' %}" class="btn-ios-secondary">+ Nueva Sala</a>
+            <a href="{% url 'tipo_clase_crear' %}" class="btn-ios-primary">+ Nueva Actividad</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Sección 1: Tipos de Clase -->
+<div class="ios-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Tipos de Clase</h3>
+    <div class="ios-table-container">
+        <table class="ios-table">
+            <thead>
+                <tr>
+                    <th>Actividad</th>
+                    <th>Duración</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in actividades %}
+                <tr>
+                    <td><strong>{{ a.nombre }}</strong></td>
+                    <td style="color: var(--ios-subtext);">{{ a.duracion_minutos }} Minutos</td>
+                    <td style="color: var(--ios-subtext); font-size: 0.85rem;">{{ a.descripcion|default:"Sin descripción" }}</td>
+                    <td>
+                        {% if a.activa %}
+                            <span class="ios-badge green">Activa</span>
+                        {% else %}
+                            <span class="ios-badge red">Inactiva</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align: center; color: var(--ios-muted); padding: 1.5rem;">No hay actividades creadas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Sección 2: Salas de Entrenamiento -->
+<div class="ios-card" style="padding: 1.5rem;">
+    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Salas e Instalaciones</h3>
+    <div class="ios-table-container">
+        <table class="ios-table">
+            <thead>
+                <tr>
+                    <th>Nombre de Sala</th>
+                    <th>Ubicación</th>
+                    <th>Capacidad Máxima</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in salas %}
+                <tr>
+                    <td><strong>{{ s.nombre }}</strong></td>
+                    <td style="color: var(--ios-subtext);">{{ s.ubicacion }}</td>
+                    <td style="font-weight: 600;">{{ s.capacidad_maxima }} Personas</td>
+                    <td>
+                        {% if s.activa %}
+                            <span class="ios-badge green">Disponible</span>
+                        {% else %}
+                            <span class="ios-badge red">Fuera de servicio</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align: center; color: var(--ios-muted); padding: 1.5rem;">No hay salas registradas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

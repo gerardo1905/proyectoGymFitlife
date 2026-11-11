@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} — FitLife{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 0 auto;">
+    <!-- Encabezado de la vista -->
+    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <h2 class="ios-title">{{ titulo }}</h2>
+            <p class="ios-subtitle">Complete los campos para guardar la cuenta del trabajador.</p>
+        </div>
+        <a href="{% url 'usuario_lista' %}" class="btn-ios-secondary">← Volver al listado</a>
+    </div>
+
+    <form method="post" class="ios-form">
+        {% csrf_token %}
+
+        <!-- Bloque 1: Datos de Acceso e Identificación -->
+        <div class="ios-card" style="margin-bottom: 1.25rem; padding: 1.5rem;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; margin-bottom: 1rem;">
+                1. Identificación y Acceso
+            </div>
+
+            <div class="form-grid">
+                {% if form.username %}
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}<span class="field-error">{{ form.username.errors.0 }}</span>{% endif %}
+                </div>
+                {% endif %}
+
+                {% if form.rut %}
+                <div class="form-group">
+                    <label for="{{ form.rut.id_for_label }}">{{ form.rut.label }}</label>
+                    {{ form.rut }}
+                    {% if form.rut.errors %}<span class="field-error">{{ form.rut.errors.0 }}</span>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Bloque 2: Información Personal -->
+        <div class="ios-card" style="margin-bottom: 1.25rem; padding: 1.5rem;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; margin-bottom: 1rem;">
+                2. Datos Personales
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<span class="field-error">{{ form.first_name.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}<span class="field-error">{{ form.last_name.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid" style="margin-top: 0.5rem;">
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<span class="field-error">{{ form.email.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.telefono.id_for_label }}">{{ form.telefono.label }}</label>
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}<span class="field-error">{{ form.telefono.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque 3: Rol y Estado -->
+        <div class="ios-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; margin-bottom: 1rem;">
+                3. Permisos y Configuración
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.rol.id_for_label }}">{{ form.rol.label }}</label>
+                    {{ form.rol }}
+                    {% if form.rol.errors %}<span class="field-error">{{ form.rol.errors.0 }}</span>{% endif %}
+                </div>
+
+                {% if form.password %}
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}<span class="field-error">{{ form.password.errors.0 }}</span>{% endif %}
+                </div>
+                {% endif %}
+
+                {% if form.is_active %}
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem; margin-top: 1.5rem;">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}" style="margin-bottom: 0; cursor: pointer;">
+                        Permitir acceso a la plataforma (Cuenta Activa)
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="{% url 'usuario_lista' %}" class="btn-ios-secondary">Cancelar</a>
+            <button type="submit" class="btn-ios-primary" style="padding-left: 2rem; padding-right: 2rem;">
+                Guardar Trabajador
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

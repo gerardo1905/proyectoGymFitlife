@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Página No Encontrada — FitLife{% endblock %}
+
+{% block content %}
+<div style="max-width: 550px; margin: 4rem auto; text-align: center;">
+    <div class="ios-card" style="padding: 3rem 2rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
+        <h1 class="ios-title" style="font-size: 2rem; margin-bottom: 0.5rem;">404 — Página No Encontrada</h1>
+        <p class="ios-subtitle" style="font-size: 1rem; margin-bottom: 2rem; line-height: 1.5;">
+            La ruta o dirección ingresada no existe en la plataforma FitLife o fue movida.
+        </p>
+        <div>
+            {% if user.is_authenticated %}
+                <a href="{% url 'home' %}" class="btn-ios-primary" style="padding: 0.8rem 2rem;">
+                    🏠 Volver al Panel Principal
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn-ios-primary" style="padding: 0.8rem 2rem;">
+                    🔑 Ir al Inicio de Sesión
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

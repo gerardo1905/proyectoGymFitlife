@@ -1,0 +1,24 @@
+# Entorno Virtual (¡Lo más pesado! No debe subirse)
+venv/
+env/
+ENV/
+
+# Archivos de caché y compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Base de datos local SQLite (si existiera alguna de prueba)
+*.sqlite3
+
+# Archivos estáticos recolectados (en el servidor en AWS se generarán con collectstatic)
+staticfiles/
+
+# Archivos de configuración local / Secretos
+.env
+.DS_Store
+.vscode/
+.idea/
+
+# Logs del sistema
+*.log

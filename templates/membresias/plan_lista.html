@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Catálogo de Planes — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">Planes del Gimnasio 🏋️‍♂️</h2>
+        <p class="ios-subtitle">Modalidades y tarifas disponibles para contratación.</p>
+    </div>
+    {% if user.rol == 'ADMINISTRADOR' or user.is_superuser %}
+        <a href="{% url 'plan_crear' %}" class="btn-ios-primary">+ Crear Nuevo Plan</a>
+    {% endif %}
+</div>
+
+<div class="ios-table-container">
+    <div style="overflow-x: auto;">
+        <table class="ios-table">
+            <thead>
+                <tr>
+                    <th>Nombre del Plan</th>
+                    <th>Duración</th>
+                    <th>Precio ($ CLP)</th>
+                    <th>Descripción</th>
+                    <th>Disponibilidad</th>
+                    {% if user.rol == 'ADMINISTRADOR' or user.is_superuser %}
+                        <th style="text-align: right;">Acciones</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for plan in planes %}
+                <tr>
+                    <td><strong>{{ plan.nombre }}</strong></td>
+                    <td style="color: var(--ios-subtext);">{{ plan.duracion_dias }} Días</td>
+                    <td style="font-weight: 700; color: var(--ios-text);">${{ plan.precio }}</td>
+                    <td style="color: var(--ios-subtext); font-size: 0.85rem;">{{ plan.descripcion|default:"Sin descripción" }}</td>
+                    <td>
+                        {% if plan.activo %}
+                            <span class="ios-badge green">Disponible</span>
+                        {% else %}
+                            <span class="ios-badge red">Desactivado</span>
+                        {% endif %}
+                    </td>
+                    {% if user.rol == 'ADMINISTRADOR' or user.is_superuser %}
+                    <td style="text-align: right;">
+                        <a href="{% url 'plan_editar' plan.pk %}" class="btn-ios-link">Editar</a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--ios-muted); padding: 2.5rem;">
+                        No existen planes registrados. Presione "+ Crear Nuevo Plan" para agregar la primera tarifa.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

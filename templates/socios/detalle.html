@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Ficha de Socio — {{ socio.nombres }} {{ socio.apellidos }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 750px; margin: 0 auto;">
+    <!-- Encabezado con acciones -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+        <div>
+            <h2 class="ios-title">{{ socio.nombres }} {{ socio.apellidos }}</h2>
+            <p class="ios-subtitle">RUT: {{ socio.rut }} — Inscrito el {{ socio.fecha_registro|date:"d/m/Y" }}</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="{% url 'socio_lista' %}" class="btn-ios-secondary">← Volver</a>
+            <a href="{% url 'socio_editar' socio.pk %}" class="btn-ios-primary">Editar Ficha</a>
+        </div>
+    </div>
+
+    <!-- Ficha Agrupada Estilo Ajustes iOS -->
+    <div class="ios-card" style="margin-bottom: 1.5rem; padding: 0.5rem 1.5rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; padding: 0.85rem 0 0.5rem 0; border-bottom: 1px solid var(--ios-separator);">
+            Información del Cliente
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid var(--ios-separator);">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">Estado de Cliente</span>
+            {% if socio.activo %}
+                <span class="ios-badge green">Activo</span>
+            {% else %}
+                <span class="ios-badge red">Inactivo</span>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid var(--ios-separator);">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">Teléfono</span>
+            <span style="font-size: 0.95rem; color: var(--ios-text); font-weight: 600;">{{ socio.telefono }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid var(--ios-separator);">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">Correo Electrónico</span>
+            <span style="font-size: 0.95rem; color: var(--ios-subtext);">{{ socio.email|default:"No registrado" }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0;">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">Contacto de Emergencia</span>
+            <span style="font-size: 0.95rem; color: var(--ios-subtext);">{{ socio.contacto_emergencia|default:"Sin información" }}</span>
+        </div>
+    </div>
+
+    <!-- Historial de Membresías Contratadas -->
+    <div class="ios-card" style="padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--ios-text);">Historial de Membresías 📜</h3>
+            <a href="#" class="btn-ios-link">+ Inscribir en Plan</a>
+        </div>
+
+        {% if membresias %}
+            <div class="ios-table-container">
+                <table class="ios-table">
+                    <thead>
+                        <tr>
+                            <th>Plan</th>
+                            <th>Inicio</th>
+                            <th>Término</th>
+                            <th>Importe</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in membresias %}
+                        <tr>
+                            <td><strong>{{ m.plan.nombre }}</strong></td>
+                            <td>{{ m.fecha_inicio|date:"d/m/Y" }}</td>
+                            <td>{{ m.fecha_fin|date:"d/m/Y" }}</td>
+                            <td>${{ m.importe_acordado }}</td>
+                            <td>
+                                {% if m.estado == 'ACTIVA' %}
+                                    <span class="ios-badge green">Activa</span>
+                                {% elif m.estado == 'VENCIDA' %}
+                                    <span class="ios-badge red">Vencida</span>
+                                {% else %}
+                                    <span class="ios-badge amber">Congelada</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 2rem; background: var(--ios-bg); border-radius: var(--radius-ios-md); color: var(--ios-muted);">
+                Este socio aún no registra ninguna membresía contratada.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

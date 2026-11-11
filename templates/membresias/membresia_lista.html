@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Control de Membresías — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">Membresías del Gimnasio 📋</h2>
+        <p class="ios-subtitle">Seguimiento de estados de vigencia (Activa, Vencida, Congelada).</p>
+    </div>
+    <a href="{% url 'membresia_crear' %}" class="btn-ios-primary">+ Registrar Membresía</a>
+</div>
+
+<!-- Filtros estilo iOS -->
+<div class="ios-card" style="padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+    <form method="get" action="{% url 'membresia_lista' %}" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 240px;">
+            <input type="text" name="q" value="{{ busqueda }}" class="ios-input" placeholder="🔍 Buscar por RUT o nombre de socio...">
+        </div>
+        
+        <select name="estado" class="ios-input" style="width: auto;" onchange="this.form.submit()">
+            <option value="">Todos los Estados</option>
+            <option value="ACTIVA" {% if estado_filtro == 'ACTIVA' %}selected{% endif %}>🟢 Activa</option>
+            <option value="VENCIDA" {% if estado_filtro == 'VENCIDA' %}selected{% endif %}>🔴 Vencida</option>
+            <option value="CONGELADA" {% if estado_filtro == 'CONGELADA' %}selected{% endif %}>🟡 Congelada</option>
+        </select>
+
+        <button type="submit" class="btn-ios-primary">Filtrar</button>
+        {% if estado_filtro or busqueda %}
+            <a href="{% url 'membresia_lista' %}" class="btn-ios-secondary">Limpiar</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Tabla de Membresías -->
+<div class="ios-table-container">
+    <div style="overflow-x: auto;">
+        <table class="ios-table">
+            <thead>
+                <tr>
+                    <th>Socio Titular</th>
+                    <th>Plan Contratado</th>
+                    <th>Inicio</th>
+                    <th>Término</th>
+                    <th>Importe</th>
+                    <th>Estado</th>
+                    <th style="text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in membresias %}
+                <tr>
+                    <td>
+                        <a href="{% url 'socio_detalle' m.socio.pk %}" style="color: var(--ios-text); font-weight: 600; text-decoration: none;">
+                            {{ m.socio.nombres }} {{ m.socio.apellidos }}
+                        </a>
+                        <br><span style="font-size: 0.8rem; color: var(--ios-muted);">RUT: {{ m.socio.rut }}</span>
+                    </td>
+                    <td><strong>{{ m.plan.nombre }}</strong></td>
+                    <td style="color: var(--ios-subtext);">{{ m.fecha_inicio|date:"d/m/Y" }}</td>
+                    <td style="color: var(--ios-subtext);">{{ m.fecha_fin|date:"d/m/Y" }}</td>
+                    <td style="font-weight: 600; color: var(--ios-text);">${{ m.importe_acordado }}</td>
+                    <td>
+                        {% if m.estado == 'ACTIVA' %}
+                            <span class="ios-badge green">Activa</span>
+                        {% elif m.estado == 'VENCIDA' %}
+                            <span class="ios-badge red">Vencida</span>
+                        {% else %}
+                            <span class="ios-badge amber">Congelada</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'pago_registrar' m.pk %}" class="btn-ios-link" style="color: #059669;">+ Pago</a>
+                        {% if m.estado == 'ACTIVA' %}
+                            <a href="{% url 'membresia_cambiar_estado' m.pk 'CONGELADA' %}" class="btn-ios-link" style="color: #d97706;">Congelar</a>
+                        {% elif m.estado == 'CONGELADA' %}
+                            <a href="{% url 'membresia_cambiar_estado' m.pk 'ACTIVA' %}" class="btn-ios-link" style="color: #2563eb;">Activar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--ios-muted); padding: 2.5rem;">
+                        No existen membresías que coincidan con los criterios de filtro seleccionados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

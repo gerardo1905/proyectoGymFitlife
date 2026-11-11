@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Personal del Gimnasio — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">Personal del Gimnasio 👥</h2>
+        <p class="ios-subtitle">Cuentas activas y permisos de acceso para trabajadores.</p>
+    </div>
+    <a href="{% url 'usuario_crear' %}" class="btn-ios-primary">+ Registrar Trabajador</a>
+</div>
+
+<div class="ios-table-container">
+    <div style="overflow-x: auto;">
+        <table class="ios-table">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>RUT</th>
+                    <th>Nombre Completo</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th style="text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in trabajadores %}
+                <tr>
+                    <td><strong>{{ u.username }}</strong></td>
+                    <td style="color: var(--ios-subtext);">{{ u.rut }}</td>
+                    <td>{{ u.first_name }} {{ u.last_name }}</td>
+                    <td style="color: var(--ios-subtext);">{{ u.email }}</td>
+                    <td>
+                        <span class="ios-badge blue">{{ u.get_rol_display }}</span>
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="ios-badge green">Activo</span>
+                        {% else %}
+                            <span class="ios-badge red">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'usuario_editar' u.pk %}" class="btn-ios-link">Editar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--ios-muted); padding: 2rem;">
+                        No hay trabajadores registrados en la plataforma.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

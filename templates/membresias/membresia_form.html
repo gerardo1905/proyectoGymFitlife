@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} — FitLife{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <h2 class="ios-title">{{ titulo }}</h2>
+            <p class="ios-subtitle">Asigne un plan comercial y vigencia al socio seleccionado.</p>
+        </div>
+        <a href="{% url 'membresia_lista' %}" class="btn-ios-secondary">← Volver</a>
+    </div>
+
+    <form method="post" id="membresiaForm" class="ios-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="ios-card" style="background: var(--ios-red-bg); border-color: #fecaca; color: #b91c1c; margin-bottom: 1.25rem; padding: 1rem;">
+                {{ form.non_field_errors.0 }}
+            </div>
+        {% endif %}
+
+        <div class="ios-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <div class="form-group">
+                <label for="{{ form.socio.id_for_label }}">{{ form.socio.label }}</label>
+                {{ form.socio }}
+                {% if form.socio.errors %}<span class="field-error">{{ form.socio.errors.0 }}</span>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.plan.id_for_label }}">{{ form.plan.label }}</label>
+                {{ form.plan }}
+                {% if form.plan.errors %}<span class="field-error">{{ form.plan.errors.0 }}</span>{% endif %}
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.fecha_inicio.id_for_label }}">{{ form.fecha_inicio.label }}</label>
+                    {{ form.fecha_inicio }}
+                    {% if form.fecha_inicio.errors %}<span class="field-error">{{ form.fecha_inicio.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.fecha_fin.id_for_label }}">{{ form.fecha_fin.label }}</label>
+                    {{ form.fecha_fin }}
+                    {% if form.fecha_fin.errors %}<span class="field-error">{{ form.fecha_fin.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid" style="margin-top: 0.5rem;">
+                <div class="form-group">
+                    <label for="{{ form.importe_acordado.id_for_label }}">{{ form.importe_acordado.label }}</label>
+                    {{ form.importe_acordado }}
+                    {% if form.importe_acordado.errors %}<span class="field-error">{{ form.importe_acordado.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.estado.id_for_label }}">{{ form.estado.label }}</label>
+                    {{ form.estado }}
+                    {% if form.estado.errors %}<span class="field-error">{{ form.estado.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="{% url 'membresia_lista' %}" class="btn-ios-secondary">Cancelar</a>
+            <button type="button" id="openModalBtn" class="btn-ios-primary" style="padding-left: 2rem; padding-right: 2rem;">
+                Registrar y Continuar al Pago →
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal Flotante de Confirmación estilo iOS -->
+<div class="ios-modal-backdrop" id="confirmModal">
+    <div class="ios-modal-card">
+        <div class="ios-modal-icon">📋</div>
+        <h3 class="ios-modal-title">Confirmar Membresía</h3>
+        <p class="ios-modal-body">¿Desea registrar esta membresía en el sistema y proceder a la pantalla de cobro?</p>
+        <div class="ios-modal-actions">
+            <button type="button" class="btn-ios-secondary" id="closeModalBtn">Revisar</button>
+            <button type="button" class="btn-ios-primary" id="submitFormBtn">Confirmar Ingreso</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('confirmModal');
+        const openBtn = document.getElementById('openModalBtn');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const submitBtn = document.getElementById('submitFormBtn');
+        const form = document.getElementById('membresiaForm');
+
+        openBtn.addEventListener('click', () => modal.classList.add('active'));
+        closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+        submitBtn.addEventListener('click', () => form.submit());
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} — FitLife{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <h2 class="ios-title">{{ titulo }}</h2>
+            <p class="ios-subtitle">Complete la información requerida en la plataforma.</p>
+        </div>
+        <a href="{% url 'tipo_clase_lista' %}" class="btn-ios-secondary">← Volver</a>
+    </div>
+
+    <form method="post" class="ios-form">
+        {% csrf_token %}
+        <div class="ios-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<span class="field-error">{{ field.errors.0 }}</span>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="{% url 'tipo_clase_lista' %}" class="btn-ios-secondary">Cancelar</a>
+            <button type="submit" class="btn-ios-primary" style="padding-left: 2rem; padding-right: 2rem;">
+                Guardar
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

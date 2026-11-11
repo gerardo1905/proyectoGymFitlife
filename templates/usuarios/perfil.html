@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Perfil — FitLife{% endblock %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 0 auto;">
+    <!-- Encabezado de la vista -->
+    <div style="margin-bottom: 1.5rem;">
+        <h2 class="ios-title">Mi Perfil Profesional 👤</h2>
+        <p class="ios-subtitle">Información personal de tu cuenta y rol asignado en la plataforma.</p>
+    </div>
+
+    <!-- Bloque 1: Resumen de Cuenta (Estilo Ajustes / Lista iOS) -->
+    <div class="ios-card" style="margin-bottom: 1.5rem; padding: 0.5rem 1.5rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; padding: 0.85rem 0 0.5rem 0; border-bottom: 1px solid var(--ios-separator);">
+            Credenciales de Acceso
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid var(--ios-separator);">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">Nombre de Usuario</span>
+            <strong style="font-size: 0.95rem; color: var(--ios-text);">{{ user.username }}</strong>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid var(--ios-separator);">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">RUT del Trabajador</span>
+            <span style="font-size: 0.95rem; color: var(--ios-subtext);">{{ user.rut }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid var(--ios-separator);">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">Rol en el Sistema</span>
+            <span class="ios-badge blue">{{ user.get_rol_display }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0;">
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--ios-text);">Estado de la Cuenta</span>
+            <span class="ios-badge green">Activa</span>
+        </div>
+    </div>
+
+    <!-- Bloque 2: Formulario de Edición de Datos Personales -->
+    <form method="post" class="ios-form">
+        {% csrf_token %}
+        
+        <div class="ios-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; margin-bottom: 1.25rem;">
+                Datos Personales de Contacto
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<span class="field-error">{{ form.first_name.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}<span class="field-error">{{ form.last_name.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid" style="margin-top: 0.5rem;">
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<span class="field-error">{{ form.email.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.telefono.id_for_label }}">{{ form.telefono.label }}</label>
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}<span class="field-error">{{ form.telefono.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+            <a href="{% url 'cambiar_password' %}" class="btn-ios-secondary">🔑 Cambiar Contraseña</a>
+            <button type="submit" class="btn-ios-primary" style="padding-left: 1.75rem; padding-right: 1.75rem;">
+                Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

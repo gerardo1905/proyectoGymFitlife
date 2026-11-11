@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Programación de Clases — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">
+            {% if user.rol == 'ENTRENADOR' %}
+                Mis Sesiones y Clases 📅
+            {% else %}
+                Sesiones de Clase 📅
+            {% endif %}
+        </h2>
+        <p class="ios-subtitle">
+            {% if user.rol == 'ENTRENADOR' %}
+                Gestión de clases agendadas, selección de sala y asistencia.
+            {% else %}
+                Calendario de clases grupales y reservas de cupos.
+            {% endif %}
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{% url 'tipo_clase_lista' %}" class="btn-ios-secondary">Actividades y Salas</a>
+        {% if user.rol == 'ADMINISTRADOR' or user.rol == 'RECEPCIONISTA' or user.rol == 'ENTRENADOR' or user.is_superuser %}
+            <a href="{% url 'sesion_crear' %}" class="btn-ios-primary">+ Programar Clase</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="ios-table-container">
+    <div style="overflow-x: auto;">
+        <table class="ios-table">
+            <thead>
+                <tr>
+                    <th>Actividad</th>
+                    <th>Fecha y Horario</th>
+                    <th>Sala</th>
+                    <th>Entrenador</th>
+                    <th>Cupos</th>
+                    <th>Estado</th>
+                    <th style="text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sesiones %}
+                <tr>
+                    <td>
+                        <a href="{% url 'sesion_detalle' s.pk %}" style="color: var(--ios-text); font-weight: 700; text-decoration: none;">
+                            {{ s.tipo_clase.nombre }}
+                        </a>
+                    </td>
+                    <td>
+                        <strong>{{ s.fecha|date:"d/m/Y" }}</strong><br>
+                        <span style="font-size: 0.825rem; color: var(--ios-subtext);">{{ s.hora_inicio|time:"H:i" }} - {{ s.hora_fin|time:"H:i" }} hrs</span>
+                    </td>
+                    <td style="color: var(--ios-subtext);">{{ s.sala.nombre }}</td>
+                    <td style="color: var(--ios-subtext);">
+                        {% if s.entrenador %}
+                            {{ s.entrenador.usuario.first_name }} {{ s.entrenador.usuario.last_name }}
+                        {% else %}
+                            <em style="color: var(--ios-muted);">Por asignar</em>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="ios-badge blue">{{ s.inscritos.count }} / {{ s.cupo_maximo }}</span>
+                    </td>
+                    <td>
+                        {% if s.estado == 'PROGRAMADA' %}
+                            <span class="ios-badge green">Programada</span>
+                        {% elif s.estado == 'EN_CURSO' %}
+                            <span class="ios-badge blue">En Curso</span>
+                        {% elif s.estado == 'FINALIZADA' %}
+                            <span class="ios-badge amber">Finalizada</span>
+                        {% else %}
+                            <span class="ios-badge red">Cancelada</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'sesion_detalle' s.pk %}" class="btn-ios-link">
+                            {% if user.rol == 'ENTRENADOR' %}
+                                Asistencia / Detalle →
+                            {% else %}
+                                Inscribir / Ver →
+                            {% endif %}
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--ios-muted); padding: 2.5rem;">
+                        No existen clases programadas desde hoy en adelante.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

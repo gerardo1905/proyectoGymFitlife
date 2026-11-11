@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} — FitLife{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <h2 class="ios-title">{{ titulo }}</h2>
+            <p class="ios-subtitle">Ingrese los datos personales y de contacto del cliente del gimnasio.</p>
+        </div>
+        <a href="{% url 'socio_lista' %}" class="btn-ios-secondary">← Volver al listado</a>
+    </div>
+
+    <form method="post" class="ios-form">
+        {% csrf_token %}
+
+        <!-- Bloque 1: Identificación del Socio -->
+        <div class="ios-card" style="margin-bottom: 1.25rem; padding: 1.5rem;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; margin-bottom: 1rem;">
+                1. Identificación Oficial
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.rut.id_for_label }}">{{ form.rut.label }}</label>
+                {{ form.rut }}
+                {% if form.rut.errors %}<span class="field-error">{{ form.rut.errors.0 }}</span>{% endif %}
+            </div>
+        </div>
+
+        <!-- Bloque 2: Datos Personales y Contacto -->
+        <div class="ios-card" style="margin-bottom: 1.25rem; padding: 1.5rem;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; margin-bottom: 1rem;">
+                2. Nombres y Teléfono
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.nombres.id_for_label }}">{{ form.nombres.label }}</label>
+                    {{ form.nombres }}
+                    {% if form.nombres.errors %}<span class="field-error">{{ form.nombres.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.apellidos.id_for_label }}">{{ form.apellidos.label }}</label>
+                    {{ form.apellidos }}
+                    {% if form.apellidos.errors %}<span class="field-error">{{ form.apellidos.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid" style="margin-top: 0.5rem;">
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<span class="field-error">{{ form.email.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.telefono.id_for_label }}">{{ form.telefono.label }}</label>
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}<span class="field-error">{{ form.telefono.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque 3: Emergencia y Estado -->
+        <div class="ios-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ios-muted); font-weight: 700; margin-bottom: 1rem;">
+                3. Seguridad y Estado
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.contacto_emergencia.id_for_label }}">{{ form.contacto_emergencia.label }}</label>
+                {{ form.contacto_emergencia }}
+                {% if form.contacto_emergencia.errors %}<span class="field-error">{{ form.contacto_emergencia.errors.0 }}</span>{% endif %}
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem; margin-top: 1.25rem;">
+                {{ form.activo }}
+                <label for="{{ form.activo.id_for_label }}" style="margin-bottom: 0; cursor: pointer;">
+                    {{ form.activo.label }}
+                </label>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="{% url 'socio_lista' %}" class="btn-ios-secondary">Cancelar</a>
+            <button type="submit" class="btn-ios-primary" style="padding-left: 2rem; padding-right: 2rem;">
+                Guardar Socio
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

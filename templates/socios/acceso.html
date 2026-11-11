@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Control de Acceso y Aforo — FitLife{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <!-- Encabezado con Contador de Aforo Vivo -->
+    <div class="ios-page-header">
+        <div>
+            <h2 class="ios-title">Control de Acceso & Aforo 🛡️</h2>
+            <p class="ios-subtitle">Validación instantánea de credenciales QR y registro de entrada/salida.</p>
+        </div>
+        <div style="background: var(--ios-card); padding: 0.6rem 1.25rem; border-radius: var(--radius-ios-md); border: 1px solid var(--ios-separator); box-shadow: var(--shadow-ios-card); text-align: right;">
+            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--ios-muted); font-weight: 700; display: block;">Aforo Actual del Gimnasio</span>
+            <strong style="font-size: 1.4rem; color: var(--ios-blue);">👥 {{ aforo_actual }} Socios Presentes</strong>
+        </div>
+    </div>
+
+    <!-- Caja de Escaneo QR / RUT -->
+    <div class="ios-card" style="padding: 1.75rem; margin-bottom: 1.5rem; text-align: center; background: #ffffff;">
+        <span style="font-size: 2.2rem; display: block; margin-bottom: 0.5rem;">📲</span>
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--ios-text); margin-bottom: 0.2rem;">Escaneo de Código QR o RUT</h3>
+        <p style="font-size: 0.875rem; color: var(--ios-subtext); margin-bottom: 1.25rem;">Escanee la credencial del cliente o digite el RUT para abrir el torniquete.</p>
+
+        <form method="post" style="max-width: 450px; margin: 0 auto; display: flex; gap: 0.75rem;">
+            {% csrf_token %}
+            <input type="text" name="rut_qr" class="ios-input" placeholder="Ej: 18.234.567-8 o 182345678" autofocus required style="text-align: center; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.05em;">
+            <button type="submit" class="btn-ios-primary" style="padding: 0 1.5rem;">Validar Acceso</button>
+        </form>
+    </div>
+
+    <!-- Resultado Visual del Acceso (Pantalla de Torniquete) -->
+    {% if resultado %}
+        {% if resultado.permitido %}
+            <!-- TARJETA VERDE: ACCESO PERMITIDO -->
+            <div class="ios-card" style="background: var(--ios-green-bg); border: 2px solid #34c759; padding: 1.75rem; margin-bottom: 1.5rem; text-align: center; animation: fadeIn 0.25s ease-out;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">🟢</div>
+                <h2 style="font-size: 1.6rem; font-weight: 800; color: #14532d; margin-bottom: 0.2rem;">¡ACCESO AUTORIZADO!</h2>
+                <p style="font-size: 1.1rem; font-weight: 700; color: #166534; margin-bottom: 1rem;">
+                    Bienvenido(a), {{ resultado.socio.nombres }} {{ resultado.socio.apellidos }}
+                </p>
+                <div style="display: inline-flex; gap: 1.5rem; background: rgba(255,255,255,0.7); padding: 0.75rem 1.5rem; border-radius: var(--radius-pill); font-size: 0.9rem; color: #14532d;">
+                    <span><strong>Plan:</strong> {{ resultado.membresia.plan.nombre }}</span>
+                    <span><strong>Vigencia restante:</strong> {{ resultado.dias_restantes }} Días</span>
+                </div>
+            </div>
+        {% else %}
+            <!-- TARJETA ROJA: ACCESO DENECADO -->
+            <div class="ios-card" style="background: var(--ios-red-bg); border: 2px solid #ff3b30; padding: 1.75rem; margin-bottom: 1.5rem; text-align: center; animation: fadeIn 0.25s ease-out;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔴</div>
+                <h2 style="font-size: 1.6rem; font-weight: 800; color: #7f1d1d; margin-bottom: 0.2rem;">ACCESO RECHAZADO</h2>
+                <p style="font-size: 1.05rem; font-weight: 600; color: #991b1b; margin-bottom: 0.5rem;">
+                    {{ resultado.motivo }}
+                </p>
+                {% if resultado.socio %}
+                    <a href="{% url 'socio_detalle' resultado.socio.pk %}" class="btn-ios-secondary" style="margin-top: 0.5rem; border-color: #fca5a5;">
+                        Ver Ficha del Socio / Regularizar Pago →
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Listado de Socios Adentro Actualmente (Aforo) -->
+    <div class="ios-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Socios en el Gimnasio (Marca de Salida) 🚪</h3>
+        <div class="ios-table-container">
+            <table class="ios-table">
+                <thead>
+                    <tr>
+                        <th>Socio</th>
+                        <th>RUT</th>
+                        <th>Hora de Entrada</th>
+                        <th style="text-align: right;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in personas_adentro %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'socio_detalle' item.socio.pk %}" style="color: var(--ios-text); font-weight: 600; text-decoration: none;">
+                                {{ item.socio.nombres }} {{ item.socio.apellidos }}
+                            </a>
+                        </td>
+                        <td style="color: var(--ios-subtext);">{{ item.socio.rut }}</td>
+                        <td style="color: var(--ios-subtext); font-size: 0.85rem;">{{ item.fecha_hora_ingreso|date:"H:i" }} hrs</td>
+                        <td style="text-align: right;">
+                            <a href="{% url 'marcar_salida' item.pk %}" class="btn-ios-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                                Registrar Salida 👋
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--ios-muted); padding: 2rem;">
+                            No hay socios registrados dentro de las instalaciones en este momento.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
