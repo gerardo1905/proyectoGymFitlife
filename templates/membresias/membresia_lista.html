@@ -73,8 +73,10 @@
                         <a href="{% url 'pago_registrar' m.pk %}" class="btn-ios-link" style="color: #059669;">+ Pago</a>
                         {% if m.estado == 'ACTIVA' %}
                             <a href="{% url 'membresia_cambiar_estado' m.pk 'CONGELADA' %}" class="btn-ios-link" style="color: #d97706;">Congelar</a>
+                            <a href="{% url 'membresia_cambiar_estado' m.pk 'CANCELADA' %}" class="btn-ios-link" style="color: #dc2626;" onclick="return confirm('¿Cancelar esta membresía? El socio quedará sin membresía vigente.');">Cancelar</a>
                         {% elif m.estado == 'CONGELADA' %}
                             <a href="{% url 'membresia_cambiar_estado' m.pk 'ACTIVA' %}" class="btn-ios-link" style="color: #2563eb;">Activar</a>
+                            <a href="{% url 'membresia_cambiar_estado' m.pk 'CANCELADA' %}" class="btn-ios-link" style="color: #dc2626;" onclick="return confirm('¿Cancelar esta membresía?');">Cancelar</a>
                         {% endif %}
                     </td>
                 </tr>

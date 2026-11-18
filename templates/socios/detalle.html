@@ -51,42 +51,49 @@
     <div class="ios-card" style="padding: 1.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--ios-text);">Historial de Membresías 📜</h3>
-            <a href="#" class="btn-ios-link">+ Inscribir en Plan</a>
+            <a href="{% url 'membresia_crear_socio' socio.pk %}" class="btn-ios-link">+ Inscribir en Plan</a>
         </div>
 
         {% if membresias %}
-            <div class="ios-table-container">
-                <table class="ios-table">
-                    <thead>
-                        <tr>
-                            <th>Plan</th>
-                            <th>Inicio</th>
-                            <th>Término</th>
-                            <th>Importe</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for m in membresias %}
-                        <tr>
-                            <td><strong>{{ m.plan.nombre }}</strong></td>
-                            <td>{{ m.fecha_inicio|date:"d/m/Y" }}</td>
-                            <td>{{ m.fecha_fin|date:"d/m/Y" }}</td>
-                            <td>${{ m.importe_acordado }}</td>
-                            <td>
-                                {% if m.estado == 'ACTIVA' %}
-                                    <span class="ios-badge green">Activa</span>
-                                {% elif m.estado == 'VENCIDA' %}
-                                    <span class="ios-badge red">Vencida</span>
-                                {% else %}
-                                    <span class="ios-badge amber">Congelada</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            {% for m in membresias %}
+            <div style="padding: 0.9rem 0; {% if not forloop.last %}border-bottom: 1px solid var(--ios-separator);{% endif %}">
+                <!-- Fila superior: nombre del plan + fechas/importe a la izquierda, estado a la derecha -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;">
+                    <div>
+                        <div style="font-size: 0.98rem; font-weight: 700; color: var(--ios-text);">{{ m.plan.nombre }}</div>
+                        <div style="font-size: 0.82rem; color: var(--ios-muted); margin-top: 0.15rem;">
+                            {{ m.fecha_inicio|date:"d/m/Y" }} — {{ m.fecha_fin|date:"d/m/Y" }} · ${{ m.importe_acordado }}
+                        </div>
+                    </div>
+                    <div style="flex-shrink: 0;">
+                        {% if m.estado == 'ACTIVA' %}
+                            <span class="ios-badge green">Activa</span>
+                        {% elif m.estado == 'VENCIDA' %}
+                            <span class="ios-badge red">Vencida</span>
+                        {% elif m.estado == 'CANCELADA' %}
+                            <span class="ios-badge red">Cancelada</span>
+                        {% else %}
+                            <span class="ios-badge amber">Congelada</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Fila inferior: todas las acciones, en una franja que envuelve si no caben -->
+                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; align-items: center; margin-top: 0.65rem;">
+                    <a href="{% url 'membresia_qr_ver' m.pk %}" target="_blank" class="btn-ios-link">Ver QR</a>
+                    <a href="{% url 'membresia_qr_reenviar' m.pk %}" class="btn-ios-link">
+                        {% if m.qr_enviado %}Reenviar QR{% else %}Enviar QR{% endif %}
+                    </a>
+                    {% if m.estado == 'ACTIVA' %}
+                        <a href="{% url 'membresia_cambiar_estado' m.pk 'CONGELADA' %}" class="btn-ios-link" style="color: #d97706;">Congelar</a>
+                        <a href="{% url 'membresia_cambiar_estado' m.pk 'CANCELADA' %}" class="btn-ios-link" style="color: #dc2626;" onclick="return confirm('¿Cancelar esta membresía? El socio quedará sin membresía vigente.');">Cancelar</a>
+                    {% elif m.estado == 'CONGELADA' %}
+                        <a href="{% url 'membresia_cambiar_estado' m.pk 'ACTIVA' %}" class="btn-ios-link" style="color: #2563eb;">Activar</a>
+                        <a href="{% url 'membresia_cambiar_estado' m.pk 'CANCELADA' %}" class="btn-ios-link" style="color: #dc2626;" onclick="return confirm('¿Cancelar esta membresía?');">Cancelar</a>
+                    {% endif %}
+                </div>
             </div>
+            {% endfor %}
         {% else %}
             <div style="text-align: center; padding: 2rem; background: var(--ios-bg); border-radius: var(--radius-ios-md); color: var(--ios-muted);">
                 Este socio aún no registra ninguna membresía contratada.

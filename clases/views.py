@@ -59,9 +59,9 @@ def sesion_crear_view(request):
             if not sesion.estado:
                 sesion.estado = 'PROGRAMADA'
                 
-            # Si el usuario es Entrenador y no seleccionó uno, autoasignar su perfil
-            if request.user.rol == 'ENTRENADOR' and not sesion.entrenador and hasattr(request.user, 'perfil_entrenador'):
-                sesion.entrenador = request.user.perfil_entrenador
+            # Si el usuario es Entrenador y no seleccionó uno, autoasignarse a sí mismo
+            if request.user.rol == 'ENTRENADOR' and not sesion.entrenador:
+                sesion.entrenador = request.user
                 
             sesion.save()
             messages.success(request, f"Sesión de '{sesion.tipo_clase.nombre}' programada exitosamente.")
@@ -76,45 +76,54 @@ def sesion_crear_view(request):
 @rol_requerido('ADMINISTRADOR', 'RECEPCIONISTA', 'ENTRENADOR')
 def sesion_detalle_view(request, pk):
     sesion = get_object_or_404(SesionClase.objects.select_related('tipo_clase', 'sala'), pk=pk)
-    inscritos = sesion.inscritos.select_related('socio').all().order_by('fecha_inscripcion')
+    inscritos = sesion.inscritos.select_related('socio').filter(en_espera=False)
+    lista_espera = sesion.inscritos.select_related('socio').filter(en_espera=True)
     cupos_disponibles = sesion.cupo_maximo - inscritos.count()
-    
+
     form_inscripcion = InscripcionSocioForm(request.POST or None)
 
     if request.method == 'POST' and form_inscripcion.is_valid():
         socio = form_inscripcion.cleaned_data['socio']
-        
+
         # Validacion 1: Membresia Activa obligatoria
         membresia_activa = socio.membresias.filter(estado='ACTIVA', fecha_fin__gte=date.today()).exists()
         if not membresia_activa:
             messages.error(request, f"Rechazado: El socio {socio.nombres} no posee una membresía activa vigente.")
             return redirect('sesion_detalle', pk=sesion.pk)
 
-        # Validacion 2: Control Transaccional de Cupos
+        # Validacion 2: Evitar inscripcion duplicada (confirmada o en espera)
+        if InscripcionClase.objects.filter(socio=socio, sesion=sesion).exists():
+            messages.error(request, f"El socio {socio.nombres} ya está inscrito o en lista de espera de esta clase.")
+            return redirect('sesion_detalle', pk=sesion.pk)
+
+        # Validacion 3 y asignación de cupo/espera: Control Transaccional
         with transaction.atomic():
             sesion_bloqueada = SesionClase.objects.select_for_update().get(pk=pk)
-            total_inscritos = sesion_bloqueada.inscritos.count()
-
-            if total_inscritos >= sesion_bloqueada.cupo_maximo:
-                messages.error(request, "Rechazado: La clase ha alcanzado su cupo máximo de inscritos.")
-                return redirect('sesion_detalle', pk=sesion.pk)
-
-            # Validacion 3: Evitar inscripcion duplicada
-            if InscripcionClase.objects.filter(socio=socio, sesion=sesion_bloqueada).exists():
-                messages.error(request, f"El socio {socio.nombres} ya está inscrito en esta clase.")
-                return redirect('sesion_detalle', pk=sesion.pk)
+            total_confirmados = sesion_bloqueada.inscritos.filter(en_espera=False).count()
+            hay_cupo = total_confirmados < sesion_bloqueada.cupo_maximo
 
             InscripcionClase.objects.create(
                 socio=socio,
                 sesion=sesion_bloqueada,
-                registrado_por=request.user
+                registrado_por=request.user,
+                en_espera=not hay_cupo
             )
-            messages.success(request, f"Socio {socio.nombres} inscrito exitosamente en {sesion.tipo_clase.nombre}.")
+
+            if hay_cupo:
+                messages.success(request, f"Socio {socio.nombres} inscrito exitosamente en {sesion.tipo_clase.nombre}.")
+            else:
+                posicion = sesion_bloqueada.inscritos.filter(en_espera=True).count()
+                messages.info(
+                    request,
+                    f"Clase completa: {socio.nombres} fue agregado a la LISTA DE ESPERA en la posición N°{posicion}. "
+                    f"Se le asignará un cupo automáticamente si alguien cancela su inscripción."
+                )
             return redirect('sesion_detalle', pk=sesion.pk)
 
     context = {
         'sesion': sesion,
         'inscritos': inscritos,
+        'lista_espera': lista_espera,
         'cupos_disponibles': cupos_disponibles,
         'form_inscripcion': form_inscripcion
     }
@@ -123,11 +132,34 @@ def sesion_detalle_view(request, pk):
 @login_required
 @rol_requerido('ADMINISTRADOR', 'RECEPCIONISTA')
 def inscripcion_cancelar_view(request, pk):
-    inscripcion = get_object_or_404(InscripcionClase, pk=pk)
-    sesion_id = inscripcion.sesion.id
-    socio_nombre = f"{inscripcion.socio.nombres} {inscripcion.socio.apellidos}"
-    inscripcion.delete()
-    messages.info(request, f"Inscripción de {socio_nombre} cancelada. Cupo liberado.")
+    with transaction.atomic():
+        inscripcion = get_object_or_404(InscripcionClase.objects.select_for_update(), pk=pk)
+        sesion_id = inscripcion.sesion.id
+        socio_nombre = f"{inscripcion.socio.nombres} {inscripcion.socio.apellidos}"
+        liberaba_cupo_confirmado = not inscripcion.en_espera
+        inscripcion.delete()
+
+        mensaje = f"Inscripción de {socio_nombre} cancelada."
+
+        # Si quien se retira tenía cupo confirmado, se promueve automáticamente
+        # al primero de la lista de espera (el más antiguo registrado).
+        if liberaba_cupo_confirmado:
+            siguiente_en_espera = InscripcionClase.objects.filter(
+                sesion_id=sesion_id, en_espera=True
+            ).order_by('fecha_inscripcion').first()
+
+            if siguiente_en_espera:
+                siguiente_en_espera.en_espera = False
+                siguiente_en_espera.save()
+                mensaje += (
+                    f" Cupo liberado y asignado automáticamente a "
+                    f"{siguiente_en_espera.socio.nombres} {siguiente_en_espera.socio.apellidos} "
+                    f"(estaba en lista de espera)."
+                )
+            else:
+                mensaje += " Cupo liberado."
+
+    messages.info(request, mensaje)
     return redirect('sesion_detalle', pk=sesion_id)
 
 @login_required

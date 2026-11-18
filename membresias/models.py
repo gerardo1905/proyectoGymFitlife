@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.conf import settings
 from socios.models import Socio
@@ -34,6 +35,13 @@ class Membresia(models.Model):
         blank=True,
         verbose_name="Registrado por"
     )
+    qr_token = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+        verbose_name="Token único del Código QR"
+    )
+    qr_enviado = models.BooleanField(default=False, verbose_name="QR Enviado por Correo")
 
     def __str__(self):
         return f"Membresía {self.socio.nombres} {self.socio.apellidos} — {self.estado}"

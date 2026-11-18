@@ -2,6 +2,7 @@ from django import forms
 from datetime import date
 from .models import TipoClase, Sala, SesionClase, InscripcionClase
 from socios.models import Socio
+from usuarios.models import Usuario
 
 class TipoClaseForm(forms.ModelForm):
     class Meta:
@@ -68,7 +69,8 @@ class SesionClaseForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['tipo_clase'].queryset = TipoClase.objects.filter(activa=True).order_by('nombre')
         self.fields['sala'].queryset = Sala.objects.filter(activa=True).order_by('nombre')
-        
+        self.fields['entrenador'].queryset = Usuario.objects.filter(rol='ENTRENADOR').order_by('first_name', 'last_name')
+
         # Opcionales al crear
         self.fields['entrenador'].required = False
         self.fields['estado'].required = False

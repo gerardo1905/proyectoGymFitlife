@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorías de Gasto — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">Categorías de Gasto 🗂️</h2>
+        <p class="ios-subtitle">Clasificación de los egresos del gimnasio.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{% url 'gasto_lista' %}" class="btn-ios-secondary">← Volver a Gastos</a>
+        <a href="{% url 'categoria_crear' %}" class="btn-ios-primary">+ Nueva Categoría</a>
+    </div>
+</div>
+
+<div class="ios-table-container">
+    <table class="ios-table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th style="text-align: right;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in categorias %}
+            <tr>
+                <td><strong>{{ c.nombre }}</strong></td>
+                <td style="color: var(--ios-subtext); font-size: 0.85rem;">{{ c.descripcion|default:"Sin descripción" }}</td>
+                <td style="text-align: right;">
+                    <a href="{% url 'categoria_editar' c.pk %}" class="btn-ios-link">Editar</a>
+                    <a href="{% url 'categoria_eliminar' c.pk %}" class="btn-ios-link" style="color: var(--ios-red);" onclick="return confirm('¿Eliminar la categoría \'{{ c.nombre }}\'? Esto no se puede deshacer.');">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="text-align: center; color: var(--ios-muted); padding: 2rem;">
+                    No hay categorías creadas. Presione "+ Nueva Categoría" para agregar la primera.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

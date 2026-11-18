@@ -61,19 +61,20 @@ class MembresiaForm(forms.ModelForm):
         if fecha_inicio and fecha_fin and fecha_fin <= fecha_inicio:
             raise forms.ValidationError("La fecha de término debe ser posterior a la fecha de inicio.")
 
-        # Validación estricta: Bloquear 2 membresías ACTIVAS simultáneas para el mismo socio
-        if socio and estado == 'ACTIVA':
-            membresias_activas = Membresia.objects.filter(
+        # Validación estricta: un socio (RUT) no puede estar asociado a más de
+        # una membresía "vigente" (ACTIVA o CONGELADA) al mismo tiempo.
+        if socio and estado in ['ACTIVA', 'CONGELADA']:
+            membresias_vigentes = Membresia.objects.filter(
                 socio=socio,
-                estado='ACTIVA'
+                estado__in=['ACTIVA', 'CONGELADA']
             )
             if self.instance.pk:
-                membresias_activas = membresias_activas.exclude(pk=self.instance.pk)
+                membresias_vigentes = membresias_vigentes.exclude(pk=self.instance.pk)
 
-            if membresias_activas.exists():
+            if membresias_vigentes.exists():
                 raise forms.ValidationError(
-                    f"El socio {socio.nombres} {socio.apellidos} ya cuenta con una membresía ACTIVA en curso. "
-                    "Debe congelar, vencer o cancelar la anterior antes de registrar una nueva activa."
+                    f"El socio {socio.nombres} {socio.apellidos} ya cuenta con una membresía vigente "
+                    "(activa o congelada). Debe cancelarla o esperar a que venza antes de registrar otra."
                 )
 
         return cleaned_data

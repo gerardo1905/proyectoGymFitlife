@@ -8,5 +8,8 @@ urlpatterns = [
     path('socios/', include('socios.urls')),
     path('membresias/', include('membresias.urls')),
     path('clases/', include('clases.urls')),
+    path('entrenadores/', include('entrenadores.urls')),
+    path('equipamiento/', include('equipamiento.urls')),
+    path('gastos/', include('gastos.urls')),
 ]
 handler404 = 'dashboard.views.error_404_view'

@@ -22,20 +22,6 @@ class Sala(models.Model):
         return f"{self.nombre} - Capacidad: {self.capacidad_maxima}"
 
 
-class Entrenador(models.Model):
-    usuario = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='perfil_entrenador',
-        verbose_name="Usuario"
-    )
-    especialidad = models.CharField(max_length=100, blank=True, null=True, verbose_name="Especialidad")
-    activo = models.BooleanField(default=True, verbose_name="Activo")
-
-    def __str__(self):
-        return f"{self.usuario.first_name} {self.usuario.last_name} - {self.especialidad or 'Entrenador'}"
-
-
 class SesionClase(models.Model):
     ESTADOS = (
         ('PROGRAMADA', 'Programada'),
@@ -45,7 +31,15 @@ class SesionClase(models.Model):
     )
 
     tipo_clase = models.ForeignKey(TipoClase, on_delete=models.RESTRICT, related_name='sesiones', verbose_name="Actividad")
-    entrenador = models.ForeignKey(Entrenador, on_delete=models.SET_NULL, null=True, blank=True, related_name='sesiones', verbose_name="Entrenador")
+    entrenador = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sesiones_dictadas',
+        limit_choices_to={'rol': 'ENTRENADOR'},
+        verbose_name="Entrenador"
+    )
     sala = models.ForeignKey(Sala, on_delete=models.RESTRICT, related_name='sesiones', verbose_name="Sala")
     fecha = models.DateField(verbose_name="Fecha")
     hora_inicio = models.TimeField(verbose_name="Hora Inicio")
@@ -62,6 +56,7 @@ class InscripcionClase(models.Model):
     sesion = models.ForeignKey(SesionClase, on_delete=models.CASCADE, related_name='inscritos', verbose_name="Sesión de Clase")
     fecha_inscripcion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Inscripción")
     asistio = models.BooleanField(default=False, verbose_name="Asistió")
+    en_espera = models.BooleanField(default=False, verbose_name="En Lista de Espera")
     registrado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -72,6 +67,8 @@ class InscripcionClase(models.Model):
 
     class Meta:
         unique_together = ('socio', 'sesion')
+        ordering = ['fecha_inscripcion']
 
     def __str__(self):
-        return f"{self.socio.nombres} {self.socio.apellidos} en {self.sesion.tipo_clase.nombre}"
+        estado = "En Espera" if self.en_espera else "Confirmado"
+        return f"{self.socio.nombres} {self.socio.apellidos} en {self.sesion.tipo_clase.nombre} ({estado})"

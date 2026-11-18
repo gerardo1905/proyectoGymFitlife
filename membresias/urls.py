@@ -15,4 +15,8 @@ urlpatterns = [
 
     # Rutas de Pagos
     path('<int:membresia_id>/pago/', views.pago_registrar_view, name='pago_registrar'),
+
+    # Rutas del Código QR de Acceso
+    path('<int:pk>/qr/', views.membresia_qr_ver_view, name='membresia_qr_ver'),
+    path('<int:pk>/qr/reenviar/', views.membresia_qr_reenviar_view, name='membresia_qr_reenviar'),
 ]

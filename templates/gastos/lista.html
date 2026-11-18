@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Gastos — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">Gastos del Gimnasio 💸</h2>
+        <p class="ios-subtitle">Registro de egresos y costos operativos.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{% url 'categoria_lista' %}" class="btn-ios-secondary">Categorías</a>
+        <a href="{% url 'gasto_crear' %}" class="btn-ios-primary">+ Registrar Gasto</a>
+    </div>
+</div>
+
+<!-- Total y filtro por categoría -->
+<div class="ios-card" style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--ios-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+            Total {% if categoria_filtro %}(filtrado){% endif %}
+        </span>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--ios-text);">${{ total|floatformat:0 }}</div>
+    </div>
+    <form method="get" action="{% url 'gasto_lista' %}" style="display: flex; gap: 0.75rem; align-items: center;">
+        <select name="categoria" class="ios-input" onchange="this.form.submit()">
+            <option value="">Todas las categorías</option>
+            {% for c in categorias %}
+                <option value="{{ c.pk }}" {% if categoria_filtro == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
+            {% endfor %}
+        </select>
+        {% if categoria_filtro %}
+            <a href="{% url 'gasto_lista' %}" class="btn-ios-secondary">Limpiar</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="ios-table-container">
+    <div style="overflow-x: auto;">
+        <table class="ios-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Categoría</th>
+                    <th>Concepto</th>
+                    <th>Comprobante</th>
+                    <th>Registrado por</th>
+                    <th style="text-align: right;">Importe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in gastos %}
+                <tr>
+                    <td style="color: var(--ios-subtext);">{{ g.fecha|date:"d/m/Y" }}</td>
+                    <td><span class="ios-badge blue">{{ g.categoria.nombre }}</span></td>
+                    <td><strong>{{ g.concepto }}</strong></td>
+                    <td style="color: var(--ios-subtext); font-size: 0.85rem;">{{ g.comprobante|default:"—" }}</td>
+                    <td style="color: var(--ios-subtext); font-size: 0.85rem;">{{ g.usuario_responsable.first_name }} {{ g.usuario_responsable.last_name }}</td>
+                    <td style="text-align: right; font-weight: 700;">${{ g.importe }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--ios-muted); padding: 2.5rem;">
+                        {% if categorias %}
+                            No hay gastos registrados todavía. Presione "+ Registrar Gasto" para agregar el primero.
+                        {% else %}
+                            Primero debes crear una categoría desde "Categorías" antes de poder registrar un gasto.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

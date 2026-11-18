@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} — FitLife{% endblock %}
+
+{% block content %}
+<div style="max-width: 560px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <h2 class="ios-title">{{ titulo }}</h2>
+            <p class="ios-subtitle">Define una categoría para clasificar los gastos.</p>
+        </div>
+        <a href="{% url 'categoria_lista' %}" class="btn-ios-secondary">← Volver</a>
+    </div>
+
+    <form method="post" class="ios-form">
+        {% csrf_token %}
+        <div class="ios-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <div class="form-group">
+                <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}<span class="field-error">{{ form.nombre.errors.0 }}</span>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
+                {{ form.descripcion }}
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="{% url 'categoria_lista' %}" class="btn-ios-secondary">Cancelar</a>
+            <button type="submit" class="btn-ios-primary" style="padding-left: 2rem; padding-right: 2rem;">
+                Guardar Categoría
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

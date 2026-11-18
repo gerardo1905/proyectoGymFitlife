@@ -1,3 +1,4 @@
+import uuid
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -72,11 +73,27 @@ def acceso_control_view(request):
     rut_busqueda = request.POST.get('rut_qr', '').strip()
 
     if request.method == 'POST' and rut_busqueda:
+        socio = None
+
+        # 1. Primero se intenta interpretar el dato escaneado/pegado como el
+        #    token de un código QR real, ligado a una Membresia especifica.
+        #    Si el dato no tiene formato de UUID, esto simplemente no aplica
+        #    y se sigue con el comportamiento original (busqueda por RUT).
         try:
-            rut_normalizado = sanitizar_y_validar_rut(rut_busqueda)
-            socio = Socio.objects.filter(rut=rut_normalizado).first()
-        except Exception:
+            token_qr = uuid.UUID(rut_busqueda)
+            membresia_escaneada = Membresia.objects.select_related('socio').filter(qr_token=token_qr).first()
+            if membresia_escaneada:
+                socio = membresia_escaneada.socio
+        except (ValueError, AttributeError, TypeError):
             socio = None
+
+        # 2. Si no era un token de QR valido, se trata como RUT (flujo original).
+        if socio is None:
+            try:
+                rut_normalizado = sanitizar_y_validar_rut(rut_busqueda)
+                socio = Socio.objects.filter(rut=rut_normalizado).first()
+            except Exception:
+                socio = None
 
         if not socio:
             resultado_acceso = {

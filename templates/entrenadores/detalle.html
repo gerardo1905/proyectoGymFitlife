@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ entrenador.first_name }} {{ entrenador.last_name }} — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">{{ entrenador.first_name }} {{ entrenador.last_name }} 🏃‍♂️</h2>
+        <p class="ios-subtitle">{{ entrenador.especialidad|default:"Sin especialidad registrada" }} · RUT {{ entrenador.rut }}</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        {% if user.rol == 'ADMINISTRADOR' or user.is_superuser %}
+            <a href="{% url 'entrenador_editar' entrenador.pk %}" class="btn-ios-secondary">Editar Especialidad</a>
+        {% endif %}
+        <a href="{% url 'entrenador_lista' %}" class="btn-ios-secondary">← Volver</a>
+    </div>
+</div>
+
+<!-- Datos del entrenador -->
+<div class="ios-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--ios-separator);">
+        <span style="color: var(--ios-subtext);">Correo</span>
+        <span style="font-weight: 600;">{{ entrenador.email|default:"—" }}</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0;">
+        <span style="color: var(--ios-subtext);">Teléfono</span>
+        <span style="font-weight: 600;">{{ entrenador.telefono|default:"—" }}</span>
+    </div>
+</div>
+
+<!-- Asignar nuevo socio -->
+<div class="ios-card">
+    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Asignar Socio</h3>
+    <form method="post" style="display: flex; gap: 0.75rem; align-items: flex-start;">
+        {% csrf_token %}
+        <div style="flex: 1;">
+            {{ form.socio }}
+            {% if form.socio.errors %}<span class="field-error">{{ form.socio.errors.0 }}</span>{% endif %}
+        </div>
+        <button type="submit" class="btn-ios-primary">+ Asignar</button>
+    </form>
+</div>
+
+<!-- Asignaciones activas -->
+<div class="ios-card">
+    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Socios Asignados Actualmente</h3>
+    {% for a in asignaciones_activas %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; {% if not forloop.last %}border-bottom: 1px solid var(--ios-separator);{% endif %}">
+            <div>
+                <div style="font-weight: 600;">{{ a.socio.nombres }} {{ a.socio.apellidos }}</div>
+                <div style="font-size: 0.82rem; color: var(--ios-muted);">Desde {{ a.fecha_inicio|date:"d/m/Y" }}</div>
+            </div>
+            <a href="{% url 'asignacion_finalizar' a.pk %}" class="btn-ios-link" style="color: var(--ios-red);" onclick="return confirm('¿Finalizar la asignación de {{ a.socio.nombres }}?');">Finalizar</a>
+        </div>
+    {% empty %}
+        <p style="color: var(--ios-muted); text-align: center; padding: 1.5rem 0;">Este entrenador no tiene socios asignados actualmente.</p>
+    {% endfor %}
+</div>
+
+<!-- Historial -->
+{% if asignaciones_historial %}
+<div class="ios-card">
+    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Historial de Asignaciones</h3>
+    {% for a in asignaciones_historial %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; {% if not forloop.last %}border-bottom: 1px solid var(--ios-separator);{% endif %}">
+            <div style="color: var(--ios-subtext);">{{ a.socio.nombres }} {{ a.socio.apellidos }}</div>
+            <div style="font-size: 0.82rem; color: var(--ios-muted);">{{ a.fecha_inicio|date:"d/m/Y" }} — {{ a.fecha_fin|date:"d/m/Y" }}</div>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

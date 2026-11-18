@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TipoClase, Sala, Entrenador, SesionClase, InscripcionClase
+from .models import TipoClase, Sala, SesionClase, InscripcionClase
 
 @admin.register(TipoClase)
 class TipoClaseAdmin(admin.ModelAdmin):
@@ -16,5 +16,6 @@ class SesionClaseAdmin(admin.ModelAdmin):
 
 @admin.register(InscripcionClase)
 class InscripcionClaseAdmin(admin.ModelAdmin):
-    list_display = ('socio', 'sesion', 'fecha_inscripcion', 'asistio')
-    list_filter = ('asistio',)
+    list_display = ('socio', 'sesion', 'fecha_inscripcion', 'en_espera', 'asistio')
+    list_filter = ('en_espera', 'asistio')
+    search_fields = ('socio__rut', 'socio__nombres', 'socio__apellidos')

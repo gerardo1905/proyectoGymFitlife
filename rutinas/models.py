@@ -1,6 +1,6 @@
 from django.db import models
+from django.conf import settings
 from socios.models import Socio
-from entrenadores.models import Entrenador
 
 class Ejercicio(models.Model):
     nombre = models.CharField(max_length=100, unique=True, verbose_name="Nombre del Ejercicio")
@@ -14,7 +14,15 @@ class Ejercicio(models.Model):
 
 class Rutina(models.Model):
     socio = models.ForeignKey(Socio, on_delete=models.CASCADE, related_name='rutinas', verbose_name="Socio")
-    entrenador = models.ForeignKey(Entrenador, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Entrenador Creador")
+    entrenador = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='rutinas_creadas',
+        limit_choices_to={'rol': 'ENTRENADOR'},
+        verbose_name="Entrenador Creador"
+    )
     nombre = models.CharField(max_length=100, verbose_name="Nombre de la Rutina")
     objetivo = models.CharField(max_length=150, verbose_name="Objetivo Principal")
     fecha_inicio = models.DateField(verbose_name="Fecha de Inicio")

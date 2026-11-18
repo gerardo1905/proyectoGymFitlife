@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ equipo.nombre }} — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">{{ equipo.nombre }} 🏋️</h2>
+        <p class="ios-subtitle">Código {{ equipo.codigo_unico }} · {{ equipo.ubicacion }}</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        {% if user.rol == 'ADMINISTRADOR' or user.is_superuser %}
+            <a href="{% url 'equipo_editar' equipo.pk %}" class="btn-ios-secondary">Editar</a>
+        {% endif %}
+        <a href="{% url 'equipo_lista' %}" class="btn-ios-secondary">← Volver</a>
+    </div>
+</div>
+
+<!-- Datos del equipo -->
+<div class="ios-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--ios-separator);">
+        <span style="color: var(--ios-subtext);">Fecha de Adquisición</span>
+        <span style="font-weight: 600;">{{ equipo.fecha_adquisicion|date:"d/m/Y" }}</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0;">
+        <span style="color: var(--ios-subtext);">Estado</span>
+        {% if equipo.estado == 'DISPONIBLE' %}
+            <span class="ios-badge green">Disponible</span>
+        {% elif equipo.estado == 'MANTENIMIENTO' %}
+            <span class="ios-badge amber">En Mantenimiento</span>
+        {% elif equipo.estado == 'FUERA_SERVICIO' %}
+            <span class="ios-badge red">Fuera de Servicio</span>
+        {% else %}
+            <span class="ios-badge red">Dado de Baja</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Registrar mantención -->
+<div class="ios-card">
+    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Registrar Mantención</h3>
+    <form method="post" class="ios-form">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.fecha_programada.id_for_label }}">{{ form.fecha_programada.label }}</label>
+                {{ form.fecha_programada }}
+                {% if form.fecha_programada.errors %}<span class="field-error">{{ form.fecha_programada.errors.0 }}</span>{% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.fecha_realizada.id_for_label }}">{{ form.fecha_realizada.label }}</label>
+                {{ form.fecha_realizada }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.costo.id_for_label }}">{{ form.costo.label }}</label>
+                {{ form.costo }}
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.trabajo_realizado.id_for_label }}">{{ form.trabajo_realizado.label }}</label>
+            {{ form.trabajo_realizado }}
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn-ios-primary">+ Registrar Mantención</button>
+        </div>
+    </form>
+</div>
+
+<!-- Historial -->
+<div class="ios-card">
+    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Historial de Mantenciones</h3>
+    {% for m in mantenimientos %}
+        <div style="padding: 0.75rem 0; {% if not forloop.last %}border-bottom: 1px solid var(--ios-separator);{% endif %}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;">
+                <div>
+                    <div style="font-weight: 600;">
+                        {{ m.fecha_programada|date:"d/m/Y" }}{% if m.fecha_realizada %} → Ejecutada el {{ m.fecha_realizada|date:"d/m/Y" }}{% endif %}
+                    </div>
+                    {% if m.trabajo_realizado %}
+                        <div style="font-size: 0.85rem; color: var(--ios-subtext); margin-top: 0.2rem;">{{ m.trabajo_realizado }}</div>
+                    {% endif %}
+                    <div style="font-size: 0.8rem; color: var(--ios-muted); margin-top: 0.2rem;">
+                        Registrado por {{ m.usuario_responsable.first_name }} {{ m.usuario_responsable.last_name }}
+                    </div>
+                </div>
+                <div style="font-weight: 700; color: var(--ios-text); flex-shrink: 0;">${{ m.costo }}</div>
+            </div>
+        </div>
+    {% empty %}
+        <p style="color: var(--ios-muted); text-align: center; padding: 1.5rem 0;">Este equipo no tiene mantenciones registradas.</p>
+    {% endfor %}
+</div>
+{% endblock %}

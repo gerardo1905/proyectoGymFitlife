@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Socios Asignados — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">Mis Socios Asignados 🏃‍♂️</h2>
+        <p class="ios-subtitle">Socios que tienes a cargo actualmente.</p>
+    </div>
+</div>
+
+<div class="ios-card">
+    {% for a in asignaciones_activas %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; {% if not forloop.last %}border-bottom: 1px solid var(--ios-separator);{% endif %}">
+            <div>
+                <div style="font-weight: 600;">{{ a.socio.nombres }} {{ a.socio.apellidos }}</div>
+                <div style="font-size: 0.82rem; color: var(--ios-muted);">Desde {{ a.fecha_inicio|date:"d/m/Y" }}{% if a.socio.telefono %} · {{ a.socio.telefono }}{% endif %}</div>
+            </div>
+            <span class="ios-badge green">Activo</span>
+        </div>
+    {% empty %}
+        <p style="color: var(--ios-muted); text-align: center; padding: 1.5rem 0;">No tienes socios asignados actualmente.</p>
+    {% endfor %}
+</div>
+
+{% if asignaciones_historial %}
+<div class="ios-card">
+    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--ios-text); margin-bottom: 1rem;">Historial</h3>
+    {% for a in asignaciones_historial %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; {% if not forloop.last %}border-bottom: 1px solid var(--ios-separator);{% endif %}">
+            <div style="color: var(--ios-subtext);">{{ a.socio.nombres }} {{ a.socio.apellidos }}</div>
+            <div style="font-size: 0.82rem; color: var(--ios-muted);">{{ a.fecha_inicio|date:"d/m/Y" }} — {{ a.fecha_fin|date:"d/m/Y" }}</div>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

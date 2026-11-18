@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponse
 from datetime import date
 from .models import Plan, Membresia, Pago
 from .forms import PlanForm, MembresiaForm, PagoForm
+from .utils import generar_imagen_qr, enviar_qr_por_correo
 from socios.models import Socio
 from usuarios.decorators import rol_requerido
 
@@ -76,12 +78,9 @@ def membresia_crear_view(request, socio_id=None):
         membresia = form.save(commit=False)
         membresia.registrado_por = request.user  # Guarda al trabajador en sesión
         membresia.save()
-        
-        # Mensaje emergente de confirmacion
-        messages.success(
-            request, 
-            f"Membresía activa a nombre de: {membresia.socio.nombres} {membresia.socio.apellidos}"
-        )
+
+        # El mensaje de confirmacion y el envio del QR se disparan recien
+        # cuando se registre el pago (ver pago_registrar_view), no aqui.
         return redirect('pago_registrar', membresia_id=membresia.pk)
 
     return render(request, 'membresias/membresia_form.html', {
@@ -94,11 +93,38 @@ def membresia_crear_view(request, socio_id=None):
 @rol_requerido('ADMINISTRADOR', 'RECEPCIONISTA')
 def membresia_cambiar_estado_view(request, pk, nuevo_estado):
     membresia = get_object_or_404(Membresia, pk=pk)
-    if nuevo_estado in ['ACTIVA', 'VENCIDA', 'CONGELADA', 'CANCELADA']:
-        membresia.estado = nuevo_estado
-        membresia.save()
-        messages.success(request, f"Membresía de {membresia.socio.nombres} actualizada a '{nuevo_estado}'.")
-    return redirect('membresia_lista')
+
+    # Vuelve a la pagina desde donde se hizo clic (lista general o ficha del
+    # socio); si no hay referer disponible, cae a la lista general como antes.
+    siguiente_url = request.META.get('HTTP_REFERER')
+
+    def _volver():
+        return redirect(siguiente_url) if siguiente_url else redirect('membresia_lista')
+
+    if nuevo_estado not in ['ACTIVA', 'VENCIDA', 'CONGELADA', 'CANCELADA']:
+        return _volver()
+
+    # Misma regla que MembresiaForm: un socio no puede tener mas de una
+    # membresia "vigente" (ACTIVA o CONGELADA) al mismo tiempo. Se valida
+    # aqui tambien porque este botón no pasa por el formulario.
+    if nuevo_estado in ['ACTIVA', 'CONGELADA']:
+        hay_conflicto = Membresia.objects.filter(
+            socio=membresia.socio, estado__in=['ACTIVA', 'CONGELADA']
+        ).exclude(pk=membresia.pk).exists()
+
+        if hay_conflicto:
+            messages.error(
+                request,
+                f"No se pudo marcar como '{nuevo_estado}': {membresia.socio.nombres} "
+                f"{membresia.socio.apellidos} ya tiene otra membresía vigente. "
+                "Cancélela o espere a que venza antes de activar/reactivar esta."
+            )
+            return _volver()
+
+    membresia.estado = nuevo_estado
+    membresia.save()
+    messages.success(request, f"Membresía de {membresia.socio.nombres} actualizada a '{nuevo_estado}'.")
+    return _volver()
 
 
 @login_required
@@ -115,9 +141,23 @@ def pago_registrar_view(request, membresia_id):
 
         # Mensaje emergente de confirmacion de pago
         messages.success(
-            request, 
+            request,
             f"Pago de ${pago.monto} registrado exitosamente a nombre de: {membresia.socio.nombres} {membresia.socio.apellidos}"
         )
+
+        # Confirmacion de membresia activa y envio del QR: recien ahora,
+        # porque el pago ya quedo efectivamente registrado.
+        messages.success(
+            request,
+            f"Membresía activa a nombre de: {membresia.socio.nombres} {membresia.socio.apellidos}"
+        )
+
+        qr_enviado, mensaje_qr = enviar_qr_por_correo(membresia)
+        if qr_enviado:
+            messages.success(request, mensaje_qr)
+        else:
+            messages.warning(request, mensaje_qr)
+
         return redirect('socio_detalle', pk=membresia.socio.pk)
 
     return render(request, 'membresias/pago_form.html', {
@@ -125,3 +165,27 @@ def pago_registrar_view(request, membresia_id):
         'membresia': membresia,
         'titulo': f'Registrar Pago — Membresía #{membresia.id}'
     })
+
+
+# ==================== CÓDIGO QR DE ACCESO LIGADO A LA MEMBRESÍA ====================
+
+@login_required
+@rol_requerido('ADMINISTRADOR', 'RECEPCIONISTA')
+def membresia_qr_ver_view(request, pk):
+    """Sirve la imagen PNG del QR de la membresía (para verla o descargarla)."""
+    membresia = get_object_or_404(Membresia, pk=pk)
+    buffer = generar_imagen_qr(membresia)
+    return HttpResponse(buffer.read(), content_type='image/png')
+
+
+@login_required
+@rol_requerido('ADMINISTRADOR', 'RECEPCIONISTA')
+def membresia_qr_reenviar_view(request, pk):
+    """Reenvía manualmente el QR al correo del socio (útil si falló el envío automático)."""
+    membresia = get_object_or_404(Membresia, pk=pk)
+    qr_enviado, mensaje_qr = enviar_qr_por_correo(membresia)
+    if qr_enviado:
+        messages.success(request, mensaje_qr)
+    else:
+        messages.warning(request, mensaje_qr)
+    return redirect('socio_detalle', pk=membresia.socio.pk)

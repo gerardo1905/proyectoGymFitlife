@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Entrenadores — FitLife{% endblock %}
+
+{% block content %}
+<div class="ios-page-header">
+    <div>
+        <h2 class="ios-title">Entrenadores 🏃‍♂️</h2>
+        <p class="ios-subtitle">Personal de entrenamiento y sus socios asignados.</p>
+    </div>
+</div>
+
+<div class="ios-table-container">
+    <div style="overflow-x: auto;">
+        <table class="ios-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>RUT</th>
+                    <th>Especialidad</th>
+                    <th>Socios Asignados</th>
+                    <th style="text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in entrenadores %}
+                <tr>
+                    <td><strong>{{ e.first_name }} {{ e.last_name }}</strong></td>
+                    <td style="color: var(--ios-subtext);">{{ e.rut }}</td>
+                    <td>
+                        {% if e.especialidad %}
+                            {{ e.especialidad }}
+                        {% else %}
+                            <span style="color: var(--ios-muted);">Sin especificar</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="ios-badge blue">{{ e.total_activos }} activo{{ e.total_activos|pluralize }}</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'entrenador_detalle' e.pk %}" class="btn-ios-link">Ver Ficha</a>
+                        {% if user.rol == 'ADMINISTRADOR' or user.is_superuser %}
+                            <a href="{% url 'entrenador_editar' e.pk %}" class="btn-ios-link" style="color: var(--ios-subtext);">Editar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--ios-muted); padding: 2.5rem;">
+                        No hay trabajadores con rol "Entrenador" registrados todavía. Puedes crear uno desde "Trabajadores" y aparecerá aquí automáticamente.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

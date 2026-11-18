@@ -57,7 +57,7 @@
                     <td style="color: var(--ios-subtext);">{{ s.sala.nombre }}</td>
                     <td style="color: var(--ios-subtext);">
                         {% if s.entrenador %}
-                            {{ s.entrenador.usuario.first_name }} {{ s.entrenador.usuario.last_name }}
+                            {{ s.entrenador.first_name }} {{ s.entrenador.last_name }}
                         {% else %}
                             <em style="color: var(--ios-muted);">Por asignar</em>
                         {% endif %}

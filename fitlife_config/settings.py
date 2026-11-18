@@ -104,6 +104,24 @@ STATIC_ROOT = BASE_DIR / 'static_root'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Configuracion de correo (envio del QR de acceso al socio).
+# Si EMAIL_HOST_USER/PASSWORD no estan definidos en el .env, el backend cae
+# a "console" (imprime el correo en la terminal) en vez de fallar: esto
+# permite que el resto del sistema funcione igual aunque aun no se hayan
+# configurado las credenciales SMTP reales.
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'FitLife Gimnasio <noreply@fitlife.cl>')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Definicion del modelo de usuario personalizado para el personal de FitLife
