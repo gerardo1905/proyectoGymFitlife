@@ -43,6 +43,14 @@ def enviar_qr_por_correo(membresia):
     """
     socio = membresia.socio
 
+    # Sin credenciales SMTP en el .env, Django solo "imprime" el correo en el log
+    # (console backend): no se debe informar como enviado.
+    if settings.EMAIL_BACKEND.endswith('console.EmailBackend'):
+        return False, (
+            "El envío de correos no está configurado en el servidor "
+            "(faltan EMAIL_HOST_USER y EMAIL_HOST_PASSWORD en el .env)."
+        )
+
     if not socio.email:
         return False, (
             f"El socio {socio.nombres} no tiene un correo electrónico registrado; "
