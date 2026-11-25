@@ -15,21 +15,25 @@ URL de API Gateway, `SECRET_KEY` y `API_GATEWAY_SECRET`.
 
 ## 1. Security Groups (EC2 → Security Groups → Create)
 
+> AWS no permite nombres que comiencen con `sg-` (prefijo reservado para los IDs).
+
 | Nombre | Regla de entrada | Origen | Para qué |
 |---|---|---|---|
-| `sg-fitlife-frontend` | HTTP 80 | 0.0.0.0/0 | Usuarios abren la web |
-| | SSH 22 | My IP | Administrar |
-| `sg-fitlife-backend` | HTTP 80 | 0.0.0.0/0 | API Gateway llama al backend (protegido con cabecera secreta) |
-| | SSH 22 | My IP | Administrar |
-| `sg-fitlife-rds` | PostgreSQL 5432 | **sg-fitlife-backend** (el grupo, no una IP) | Solo el backend llega a la BD |
+| `fitlife-frontend-sg` | HTTP 80 | 0.0.0.0/0 | Usuarios abren la web |
+| | SSH 22 | My IP | Administrar desde tu PC |
+| | SSH 22 | 18.206.107.24/29 | Botón "Connect" del navegador (EC2 Instance Connect, us-east-1) |
+| `fitlife-backend-sg` | HTTP 80 | 0.0.0.0/0 | API Gateway llama al backend (protegido con cabecera secreta) |
+| | SSH 22 | My IP | Administrar desde tu PC |
+| | SSH 22 | 18.206.107.24/29 | Botón "Connect" del navegador (EC2 Instance Connect, us-east-1) |
+| `fitlife-rds-sg` | PostgreSQL 5432 | **fitlife-backend-sg** (el grupo, no una IP) | Solo el backend llega a la BD |
 
-📸 Evidencia P3/P7: captura de las reglas de `sg-fitlife-rds` mostrando que el origen es el SG del backend.
+📸 Evidencia P3/P7: captura de las reglas de `fitlife-rds-sg` mostrando que el origen es el SG del backend.
 
 ## 2. RDS PostgreSQL (RDS → Create database)
 
 - Standard create · **PostgreSQL** · plantilla **Free tier / Dev-Test** · `db.t3.micro` · 20 GB gp2/gp3.
 - DB instance identifier: `fitlife-db` · usuario maestro: `fitlife_admin` · contraseña fuerte (anótala).
-- Connectivity: **Public access: No** · VPC security group: **sg-fitlife-rds** (quitar el `default`).
+- Connectivity: **Public access: No** · VPC security group: **fitlife-rds-sg** (quitar el `default`).
 - Additional configuration → Initial database name: `fitlife_db`.
 - **Encryption: Enable encryption** (clave `aws/rds`). ⚠️ Se decide al crear; no se puede activar después
   sin migrar con un snapshot cifrado.
@@ -57,7 +61,7 @@ no hay claves de acceso en el código.
 ## 4. EC2 Backend
 
 **Launch instance**: Ubuntu Server 24.04 · `t2.micro`/`t3.micro` · key pair `vockey` (o uno propio) ·
-security group **sg-fitlife-backend** · *Advanced details → IAM instance profile*: **LabInstanceProfile**.
+security group **fitlife-backend-sg** · *Advanced details → IAM instance profile*: **LabInstanceProfile**.
 
 Conectarse por SSH (o EC2 Instance Connect) y ejecutar:
 
@@ -149,7 +153,7 @@ la solicitud 6.) Compara con la llamada directa a la EC2, que responde 403 a cua
 
 ## 6. EC2 Frontend
 
-Launch instance: Ubuntu 24.04 · `t2.micro` · **sg-fitlife-frontend**.
+Launch instance: Ubuntu 24.04 · `t2.micro` · **fitlife-frontend-sg**.
 
 ```bash
 sudo apt update && sudo apt install -y nginx git curl
