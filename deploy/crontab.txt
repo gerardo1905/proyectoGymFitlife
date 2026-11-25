@@ -1,0 +1,3 @@
+# Tareas programadas del EC2 BACKEND (instalar con:  crontab deploy/crontab.txt)
+# Marca como VENCIDAS las membresías cuya fecha de término ya pasó (00:05 todos los días, hora del servidor)
+5 0 * * * cd /home/ubuntu/fitlife_backend && /home/ubuntu/fitlife_backend/venv/bin/python manage.py actualizar_membresias >> /home/ubuntu/cron_membresias.log 2>&1

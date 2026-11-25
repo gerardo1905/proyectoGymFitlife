@@ -9,6 +9,21 @@ validador_telefono = RegexValidator(
 )
 
 # 2. Sanitizador y Validador Universal de RUT Chileno
+def calcular_dv_rut(cuerpo):
+    """Calcula el dígito verificador de un RUT chileno (algoritmo módulo 11)."""
+    suma = 0
+    multiplicador = 2
+    for digito in reversed(cuerpo):
+        suma += int(digito) * multiplicador
+        multiplicador = 2 if multiplicador == 7 else multiplicador + 1
+    resto = 11 - (suma % 11)
+    if resto == 11:
+        return '0'
+    if resto == 10:
+        return 'K'
+    return str(resto)
+
+
 def sanitizar_y_validar_rut(rut_raw):
     if not rut_raw:
         return rut_raw
@@ -21,6 +36,12 @@ def sanitizar_y_validar_rut(rut_raw):
 
     cuerpo = limpio[:-1]
     dv = limpio[-1]
+
+    if not cuerpo.isdigit():
+        raise ValidationError("El RUT solo puede contener números y, al final, un dígito verificador (0-9 o K).")
+
+    if calcular_dv_rut(cuerpo) != dv:
+        raise ValidationError("El RUT ingresado no es válido (el dígito verificador no corresponde).")
 
     # Formatear al estándar único de base de datos: XX.XXX.XXX-X
     if len(cuerpo) == 7:

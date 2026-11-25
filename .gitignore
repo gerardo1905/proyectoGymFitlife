@@ -13,6 +13,10 @@ __pycache__/
 
 # Archivos estáticos recolectados (en el servidor en AWS se generarán con collectstatic)
 staticfiles/
+static_root/
+
+# Archivos subidos por usuarios
+media/
 
 # Archivos de configuración local / Secretos
 ..env
@@ -23,3 +27,9 @@ staticfiles/
 
 # Logs del sistema
 *.log
+# Dependencias de Node (no pertenecen al backend)
+node_modules/
+package-lock.json
+
+# Carpeta generada por el asistente en el escritorio (no es parte del proyecto)
+Claude outputs/

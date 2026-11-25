@@ -1,0 +1,22 @@
+# /etc/systemd/system/gunicorn-fitlife.service  (EC2 BACKEND)
+# Activar con:
+#   sudo cp deploy/gunicorn-fitlife.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now gunicorn-fitlife
+[Unit]
+Description=Gunicorn - FitLife API (Django REST Framework)
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/fitlife_backend
+ExecStart=/home/ubuntu/fitlife_backend/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8000 \
+    --access-logfile - \
+    --error-logfile - \
+    fitlife_config.wsgi:application
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

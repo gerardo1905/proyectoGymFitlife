@@ -2,6 +2,12 @@ from django.db import models
 from django.conf import settings
 from socios.models import Socio
 
+# Todas las clases duran exactamente una hora y empiezan a la hora en punto.
+DURACION_CLASE_MINUTOS = 60
+PRIMERA_HORA_INICIO = 6    # 06:00
+ULTIMA_HORA_INICIO = 21    # 21:00 (termina 22:00, cierre del gimnasio)
+
+
 class TipoClase(models.Model):
     nombre = models.CharField(max_length=100, unique=True, verbose_name="Nombre de la Actividad")
     descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción")
