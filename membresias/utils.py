@@ -28,7 +28,7 @@ def generar_imagen_qr(membresia):
     imagen = qr.make_image(fill_color="black", back_color="white")
 
     buffer = io.BytesIO()
-    imagen.save(buffer, format='PNG')
+    imagen.save(buffer)  # qrcode genera PNG por defecto
     buffer.seek(0)
     return buffer
 

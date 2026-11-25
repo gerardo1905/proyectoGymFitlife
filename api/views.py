@@ -334,7 +334,7 @@ class MembresiaViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Re
         if not default_storage.exists(ruta):
             imagen = qrcode.make(str(membresia.qr_token))
             buffer = io.BytesIO()
-            imagen.save(buffer, format='PNG')
+            imagen.save(buffer)  # qrcode genera PNG por defecto
             default_storage.save(ruta, ContentFile(buffer.getvalue()))
         url = default_storage.url(ruta)
         if url.startswith('/'):

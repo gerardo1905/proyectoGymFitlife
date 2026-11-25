@@ -3,6 +3,7 @@ from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
+from django.core.management.utils import get_random_secret_key
 
 # Ruta base del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,8 @@ DEBUG = _env_bool('DEBUG', 'False')
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
     if DEBUG:
-        SECRET_KEY = 'django-insecure-solo-para-desarrollo-local'
+        # Desarrollo local sin .env: clave aleatoria en cada arranque (nunca escrita en el código).
+        SECRET_KEY = get_random_secret_key()
     else:
         raise ImproperlyConfigured(
             "Falta SECRET_KEY en el archivo .env (obligatoria cuando DEBUG=False)."

@@ -17,9 +17,12 @@ import os
 from datetime import datetime, timezone
 
 import boto3
+from botocore.config import Config
 
-rds = boto3.client('rds')
-sns = boto3.client('sns')
+# Tiempos de espera explícitos: la función nunca queda colgada esperando a AWS.
+CONFIG_AWS = Config(connect_timeout=5, read_timeout=20, retries={'max_attempts': 3})
+rds = boto3.client('rds', config=CONFIG_AWS)
+sns = boto3.client('sns', config=CONFIG_AWS)
 
 DB_INSTANCE_ID = os.environ['DB_INSTANCE_ID']
 SNS_TOPIC_ARN = os.environ.get('SNS_TOPIC_ARN', '')
